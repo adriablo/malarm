@@ -7,7 +7,19 @@ A minimal native-Kotlin Android alarm clock app (`com.malarm`).
 - Exact-alarm scheduling with full-screen ringing and vibration
 - Survives process death and reboots (BOOT_COMPLETED)
 
-## Requirements
+## Installation
+
+Download `malarm.apk` from the latest [release](https://github.com/adriablo/malarm/releases).
+
+**On the phone (no computer):** tap the downloaded `malarm.apk`, allow "Install unknown apps" for your browser/Files app, then tap **Install**. Play Protect may warn it looks like an internal test build — that's expected (it's a debug build); tap "More details → Install anyway".
+
+**Via adb:**
+
+```
+adb install malarm.apk
+```
+
+## Build Requirements
 
 - JDK 17+
 - Android SDK (compileSdk 36, targetSdk 35)
