@@ -8,3 +8,8 @@ A minimal native-Kotlin Android alarm clock app (`com.malarm`).
 - Survives process death and reboots (BOOT_COMPLETED)
 
 Build: `./gradlew assembleDebug`
+
+## Screenshots
+
+<img src="screenshots/main.png" width="280" alt="Alarm list">
+<img src="screenshots/add-alarm-dialog.png" width="280" alt="Add alarm dialog">
