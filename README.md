@@ -7,6 +7,13 @@ A minimal native-Kotlin Android alarm clock app (`com.malarm`).
 - Exact-alarm scheduling with full-screen ringing and vibration
 - Survives process death and reboots (BOOT_COMPLETED)
 
+## Requirements
+
+- JDK 17+
+- Android SDK (compileSdk 36, targetSdk 35)
+- Gradle 8.13 (wrapper included)
+- Runs on Android 7.0+ (minSdk 24)
+
 Build: `./gradlew assembleDebug`
 
 ## Screenshots
