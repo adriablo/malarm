@@ -34,6 +34,13 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    applicationVariants.all {
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "malarm.apk"
+        }
+    }
 }
 
 dependencies {
