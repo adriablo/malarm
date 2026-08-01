@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Malarm</string>
+    <string name="add_alarm">Add alarm</string>
+    <string name="delete">Delete</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="snooze">Snooze</string>
+    <string name="repeat">Repeat</string>
+    <string name="date">Date</string>
+    <string name="date_none">None</string>
+    <string name="clear">Clear</string>
+    <string name="ringtone">Ringtone</string>
+    <string name="label">Label</string>
+    <string name="enabled">Enabled</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="once">Once</string>
+    <string name="daily">Daily</string>
+    <string name="weekdays">Weekdays</string>
+    <string name="weekends">Weekends</string>
+    <string name="monthly">Monthly</string>
+    <string name="monthly_day">Day of month</string>
+    <string name="choose_days">Choose days…</string>
+    <string name="alarm_channel_name">Alarm ringing</string>
+    <string name="alarm_saved">Alarm saved</string>
+    <string name="ringtone_default">Default</string>
+    <string name="notifications_permission_denied">Notifications are disabled. Alarms may not ring on time.</string>
+    <string name="exact_alarm_permission_required">Exact alarm access is required for reliable alarms.</string>
+    <string name="allow">Allow</string>
+    <string name="settings">Settings</string>
+    <string name="snooze_duration">Snooze duration</string>
+    <string name="minutes_format">%1$d min</string>
+</resources>
