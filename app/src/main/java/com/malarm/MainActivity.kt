@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.format.DateFormat
+import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -130,13 +131,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSnoozeDialog() {
-        val options = intArrayOf(5, 10, 15, 20, 30, 45, 60)
-        val labels = options.map { getString(R.string.minutes_format, it) }.toTypedArray()
-        val checked = options.indexOf(store.snoozeMinutes()).coerceAtLeast(0)
+        val labels = (1..60).map { getString(R.string.minutes_format, it) }.toTypedArray()
+        val picker = NumberPicker(this).apply {
+            minValue = 1
+            maxValue = 60
+            wrapSelectorWheel = false
+            value = store.snoozeMinutes().coerceIn(minValue, maxValue)
+            displayedValues = labels
+        }
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.snooze_duration)
-            .setSingleChoiceItems(labels, checked) { _, which -> store.setSnoozeMinutes(options[which]) }
-            .setPositiveButton(R.string.save, null)
+            .setView(picker)
+            .setPositiveButton(R.string.save) { _, _ -> store.setSnoozeMinutes(picker.value) }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
