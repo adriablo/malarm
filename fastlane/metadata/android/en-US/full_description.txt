@@ -1,0 +1,11 @@
+Malarm is a flexible, no-frills alarm scheduler for Android.
+
+Features:
+
+* One-time and date-specific alarms (e.g. "Rent due on the 15th")
+* Repeat schedules: daily, weekdays, weekends, weekly, or monthly
+* Configurable snooze duration from 1 to 60 minutes
+* Full-screen alarm with the sound of your choice
+* Works completely offline — no ads, no tracking, no accounts
+
+This app requires no special permissions and never sends data anywhere: it has no INTERNET permission at all. It is free and open source software, released under the MIT license.

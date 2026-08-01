@@ -1,0 +1,1 @@
+Snooze duration is now configurable (1-60 minutes).
