@@ -26,3 +26,6 @@ must never break the F-Droid build/update pipeline.
 - Publish a new release: bump versionName/versionCode, tag `vX.Y.Z`, push tag.
   F-Droid picks it up automatically (~24-48h).
 - Do not touch the GitLab fork or open new MRs unless the build recipe changes.
+- Never commit or push to any repository (GitHub, GitLab, or otherwise)
+  without explicit user approval. Show proposed changes and wait for a
+  go-ahead first.
