@@ -1,0 +1,5 @@
+New in 0.3.0:
+- Silent ringtone option (vibrate only)
+- Export and import all alarms as a backup file
+- Alarm screen now shows even when notifications are denied
+- Alarm ringing stops automatically after 5 minutes
