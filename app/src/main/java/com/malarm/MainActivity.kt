@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         requestFullScreenIntentPermissionIfNeeded()
+        updatePermissionGate()
         if (!granted) {
             Snackbar.make(binding.root, R.string.notifications_permission_denied, Snackbar.LENGTH_LONG).show()
         }
@@ -101,16 +102,36 @@ class MainActivity : AppCompatActivity() {
         binding.recycler.adapter = adapter
         binding.fab.setOnClickListener { showAlarmDialog(null) }
         binding.settings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        binding.permissionAllow.setOnClickListener {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        binding.permissionSettings.setOnClickListener {
+            startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName),
+            )
+        }
 
         handleDebugIntent(intent)
         warnIfExactAlarmsUnavailable()
 
         requestNotificationPermissionIfNeeded()
+        updatePermissionGate()
     }
 
     override fun onResume() {
         super.onResume()
+        updatePermissionGate()
         adapter.submit(store.all())
+    }
+
+    private fun updatePermissionGate() {
+        val required = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS,
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        binding.permissionGate.visibility =
+            if (required) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     private fun warnIfExactAlarmsUnavailable() {
