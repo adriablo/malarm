@@ -99,6 +99,11 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
     }
 
+    override fun onResume() {
+        super.onResume()
+        adapter.submit(store.all())
+    }
+
     private fun warnIfExactAlarmsUnavailable() {
         if (scheduler.canScheduleExact()) return
         Snackbar.make(

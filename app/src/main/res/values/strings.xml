@@ -33,4 +33,12 @@
     <string name="minutes_format">%1$d min</string>
     <string name="version">Version</string>
     <string name="version_format">%1$s (%2$d)</string>
+    <string name="export_alarms">Export alarms</string>
+    <string name="import_alarms">Import alarms</string>
+    <string name="export_done">Alarms exported</string>
+    <string name="export_error">Export failed</string>
+    <string name="import_error">Import failed — not a valid backup file</string>
+    <string name="import_title">Import alarms?</string>
+    <string name="import_confirm">This will replace all current alarms with %1$d alarm(s) from the file.</string>
+    <string name="import_done">%1$d alarm(s) imported</string>
 </resources>

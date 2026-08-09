@@ -30,6 +30,8 @@ class AlarmStore(context: Context) {
         persist(all().filterNot { it.id == id })
     }
 
+    fun replaceAll(alarms: List<Alarm>) = persist(alarms)
+
     fun nextId(): Long {
         val id = prefs.getLong(KEY_NEXT_ID, 1L)
         prefs.edit().putLong(KEY_NEXT_ID, id + 1).commit()
