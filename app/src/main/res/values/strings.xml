@@ -26,6 +26,7 @@
     <string name="ringtone_default">Default</string>
     <string name="silent">Silent</string>
     <string name="notifications_permission_denied">Notifications are disabled. Alarms may not ring on time.</string>
+    <string name="full_screen_permission_denied">Full-screen alerts are disabled. Alarms may not appear over the lock screen.</string>
     <string name="exact_alarm_permission_required">Exact alarm access is required for reliable alarms.</string>
     <string name="allow">Allow</string>
     <string name="settings">Settings</string>

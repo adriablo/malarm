@@ -58,8 +58,17 @@ class MainActivity : AppCompatActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
+        requestFullScreenIntentPermissionIfNeeded()
         if (!granted) {
             Snackbar.make(binding.root, R.string.notifications_permission_denied, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private val fullScreenPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (!granted) {
+            Snackbar.make(binding.root, R.string.full_screen_permission_denied, Snackbar.LENGTH_LONG).show()
         }
     }
 
@@ -143,7 +152,19 @@ class MainActivity : AppCompatActivity() {
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
             if (!granted) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
             }
+        }
+        requestFullScreenIntentPermissionIfNeeded()
+    }
+
+    private fun requestFullScreenIntentPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.USE_FULL_SCREEN_INTENT,
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            fullScreenPermissionLauncher.launch(Manifest.permission.USE_FULL_SCREEN_INTENT)
         }
     }
 
