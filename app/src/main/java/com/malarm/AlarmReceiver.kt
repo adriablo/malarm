@@ -1,10 +1,13 @@
 package com.malarm
 
+import android.Manifest
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.PowerManager
 import androidx.core.content.ContextCompat
 
@@ -45,7 +48,22 @@ class AlarmReceiver : BroadcastReceiver() {
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.notify(AlarmNotifier.NOTIFICATION_ID, AlarmNotifier.build(context, alarm))
         }
+        if (!canPostNotifications(context)) {
+            runCatching {
+                context.startActivity(
+                    AlarmActivity.intent(context, alarm.id)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
+        }
     }
+
+    private fun canPostNotifications(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
 
     companion object {
         private const val BRIDGE_LOCK_TIMEOUT_MS = 30_000L
