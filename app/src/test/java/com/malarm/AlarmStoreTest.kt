@@ -1,6 +1,5 @@
 package com.malarm
 
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -20,11 +19,6 @@ class AlarmStoreTest {
     @Before
     fun setUp() {
         store = AlarmStore(RuntimeEnvironment.getApplication())
-    }
-
-    @After
-    fun tearDown() {
-        store.replaceAll(emptyList())
     }
 
     @Test

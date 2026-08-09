@@ -23,7 +23,10 @@ class AlarmSchedulerTest {
     // Thursday 2026-08-06 02:00
     private val now: Calendar = at(6, Calendar.AUGUST, 2026, 2, 0)
 
-    private fun expect(expected: Calendar, alarm: Alarm) {
+    private fun expect(expected: Calendar, alarm: Alarm) =
+        expect(now, expected, alarm)
+
+    private fun expect(now: Calendar, expected: Calendar, alarm: Alarm) {
         assertEquals(expected.timeInMillis, AlarmScheduler.nextTrigger(alarm, now))
     }
 
@@ -74,6 +77,38 @@ class AlarmSchedulerTest {
     @Test
     fun monthlyDayFallsTodayEarlierTimeSkipsToNextMonth() {
         expect(at(6, Calendar.SEPTEMBER, 2026, 1, 0), Alarm(1, 1, 0, monthlyDay = 6))
+    }
+
+    @Test
+    fun monthlyDay31SkipsShortMonth() {
+        expect(
+            at(30, Calendar.APRIL, 2026, 2, 0),
+            at(31, Calendar.MAY, 2026, 8, 0),
+            Alarm(1, 8, 0, monthlyDay = 31),
+        )
+    }
+
+    @Test
+    fun monthlyDay29SkipsNonLeapFebruary() {
+        expect(
+            at(28, Calendar.FEBRUARY, 2027, 2, 0),
+            at(29, Calendar.MARCH, 2027, 8, 0),
+            Alarm(1, 8, 0, monthlyDay = 29),
+        )
+    }
+
+    @Test
+    fun monthlyDay29FiresOnLeapYearFebruary() {
+        expect(
+            at(28, Calendar.FEBRUARY, 2028, 2, 0),
+            at(29, Calendar.FEBRUARY, 2028, 8, 0),
+            Alarm(1, 8, 0, monthlyDay = 29),
+        )
+    }
+
+    @Test
+    fun monthlyInvalidDayReturnsNull() {
+        assertNull(AlarmScheduler.nextTrigger(Alarm(1, 8, 0, monthlyDay = 0), now))
     }
 
     @Test
