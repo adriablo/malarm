@@ -32,6 +32,7 @@
     <string name="snooze_duration">Snooze duration</string>
     <string name="minutes_format">%1$d min</string>
     <string name="version">Version</string>
+    <string name="github">GitHub</string>
     <string name="version_format">%1$s (%2$d)</string>
     <string name="export_alarms">Export alarms</string>
     <string name="import_alarms">Import alarms</string>
