@@ -9,7 +9,9 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -21,13 +23,14 @@ class RingtoneService : Service() {
     private var player: MediaPlayer? = null
     private var vibrator: Vibrator? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var stopHandler: Handler? = null
 
     override fun onCreate() {
         super.onCreate()
         AlarmNotifier.ensureChannel(this)
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$packageName:ringing")
-            .apply { acquire(ALARM_MAX_DURATION_MS) }
+            .apply { acquire(RING_MAX_DURATION_MS) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -46,12 +49,17 @@ class RingtoneService : Service() {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
             )
             startRinging(alarm)
+            stopHandler = Handler(Looper.getMainLooper())
+            stopHandler?.postDelayed({ stopSelf() }, RING_MAX_DURATION_MS)
         }
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        stopHandler?.removeCallbacksAndMessages(null)
+        stopHandler = null
         stopRinging()
+        AlarmNotifier.cancel(this)
         super.onDestroy()
     }
 
@@ -107,7 +115,7 @@ class RingtoneService : Service() {
     }
 
     companion object {
-        private const val ALARM_MAX_DURATION_MS = 10 * 60 * 1000L
+        private const val RING_MAX_DURATION_MS = 5 * 60 * 1000L
 
         fun intent(context: Context, alarm: Alarm): Intent =
             Intent(context, RingtoneService::class.java)
