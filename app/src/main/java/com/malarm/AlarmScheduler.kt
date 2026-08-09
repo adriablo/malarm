@@ -14,23 +14,23 @@ class AlarmScheduler(private val context: Context) {
 
     fun schedule(alarm: Alarm) {
         val trigger = nextTrigger(alarm) ?: return
-        setExact(trigger, alarmPendingIntent(alarm.id, alarm.id))
+        setExact(trigger, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
     }
 
     fun cancel(alarm: Alarm) {
-        alarmManager.cancel(alarmPendingIntent(alarm.id, alarm.id))
-        alarmManager.cancel(alarmPendingIntent(alarm.id, alarm.id + SNOOZE_OFFSET))
+        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
     }
 
     fun scheduleSnooze(alarm: Alarm, delayMillis: Long) {
         setExact(
             System.currentTimeMillis() + delayMillis,
-            alarmPendingIntent(alarm.id, alarm.id + SNOOZE_OFFSET),
+            alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true),
         )
     }
 
     fun cancelSnooze(alarm: Alarm) {
-        alarmManager.cancel(alarmPendingIntent(alarm.id, alarm.id + SNOOZE_OFFSET))
+        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
     }
 
     private fun setExact(triggerAtMillis: Long, pi: PendingIntent) {
@@ -55,7 +55,20 @@ class AlarmScheduler(private val context: Context) {
         const val ACTION_ALARM = "com.malarm.ACTION_ALARM"
         const val EXTRA_ALARM_ID = "com.malarm.EXTRA_ALARM_ID"
         const val EXTRA_IS_SNOOZE = "com.malarm.EXTRA_IS_SNOOZE"
-        private const val SNOOZE_OFFSET = 1_000_000L
+
+        // PendingIntent request codes must be unique per (alarm, role): identity
+        // ignores extras, so adjacent alarm ids would otherwise collide.
+        const val ROLE_MAIN = 0
+        const val ROLE_SNOOZE = 1
+        const val ROLE_FULL_SCREEN = 2
+        const val ROLE_ACTION_SNOOZE = 3
+        const val ROLE_ACTION_DISMISS = 4
+        private const val ROLE_STRIDE = 5
+
+        fun requestCode(alarmId: Long, role: Int): Int {
+            val hash = (alarmId xor (alarmId ushr 32)).toInt()
+            return hash * ROLE_STRIDE + role
+        }
 
         internal fun nextTrigger(alarm: Alarm, now: Calendar): Long? {
             if (alarm.dateMillis != null) {
@@ -97,15 +110,15 @@ class AlarmScheduler(private val context: Context) {
         }
     }
 
-    private fun alarmPendingIntent(alarmId: Long, requestCode: Long): PendingIntent {
+    private fun alarmPendingIntent(alarmId: Long, role: Int, isSnooze: Boolean): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             action = ACTION_ALARM
             putExtra(EXTRA_ALARM_ID, alarmId)
-            putExtra(EXTRA_IS_SNOOZE, requestCode >= SNOOZE_OFFSET)
+            putExtra(EXTRA_IS_SNOOZE, isSnooze)
         }
         return PendingIntent.getBroadcast(
             context,
-            requestCode.toInt(),
+            requestCode(alarmId, role),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

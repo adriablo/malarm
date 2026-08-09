@@ -25,19 +25,19 @@ object AlarmNotifier {
     fun build(context: Context, alarm: Alarm): android.app.Notification {
         val fullScreen = PendingIntent.getActivity(
             context,
-            alarm.id.toInt(),
+            AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_FULL_SCREEN),
             AlarmActivity.intent(context, alarm.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val snooze = PendingIntent.getActivity(
             context,
-            alarm.id.toInt() + 10,
+            AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_SNOOZE),
             AlarmActivity.intent(context, alarm.id, AlarmActivity.Action.SNOOZE),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val dismiss = PendingIntent.getActivity(
             context,
-            alarm.id.toInt() + 11,
+            AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_DISMISS),
             AlarmActivity.intent(context, alarm.id, AlarmActivity.Action.DISMISS),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

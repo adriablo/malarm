@@ -3,6 +3,7 @@ package com.malarm
 import java.util.Calendar
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AlarmSchedulerTest {
@@ -91,5 +92,26 @@ class AlarmSchedulerTest {
     fun dateAlarmEarlierTodayReturnsNull() {
         val alarm = Alarm(1, 1, 0, dateMillis = at(6, Calendar.AUGUST, 2026, 0, 0).timeInMillis)
         assertNull(AlarmScheduler.nextTrigger(alarm, now))
+    }
+
+    @Test
+    fun pendingIntentRequestCodesAreUniquePerAlarmAndRole() {
+        val roles = intArrayOf(
+            AlarmScheduler.ROLE_MAIN,
+            AlarmScheduler.ROLE_SNOOZE,
+            AlarmScheduler.ROLE_FULL_SCREEN,
+            AlarmScheduler.ROLE_ACTION_SNOOZE,
+            AlarmScheduler.ROLE_ACTION_DISMISS,
+        )
+        val codes = mutableSetOf<Int>()
+        for (id in 0L..50L) {
+            for (role in roles) {
+                assertTrue(
+                    "duplicate request code for alarm $id role $role",
+                    codes.add(AlarmScheduler.requestCode(id, role)),
+                )
+            }
+        }
+        assertTrue(codes.size >= 51 * roles.size)
     }
 }
