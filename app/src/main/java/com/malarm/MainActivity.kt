@@ -48,7 +48,9 @@ class MainActivity : AppCompatActivity() {
                 @Suppress("DEPRECATION")
                 result.data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
             }
-            editing = editing?.copy(ringtone = uri?.toString() ?: "")
+            editing = editing?.copy(
+                ringtone = uri?.toString() ?: RingtoneService.RINGTONE_SILENT,
+            )
             dialogBinding?.dialogRingtone?.text = ringtoneLabel()
         }
     }
@@ -255,11 +257,13 @@ class MainActivity : AppCompatActivity() {
 
         db.dialogRingtone.setOnClickListener {
             val current = editing ?: return@setOnClickListener
-            val uri = current.ringtone.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
+            val uri = current.ringtone
+                .takeIf { it.isNotBlank() && it != RingtoneService.RINGTONE_SILENT }
+                ?.let { Uri.parse(it) }
             val picker = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                 putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, uri)
             }
             ringtoneLauncher.launch(picker)
@@ -381,6 +385,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ringtoneTitle(uriString: String): String {
+        if (uriString == RingtoneService.RINGTONE_SILENT) return getString(R.string.silent)
         if (uriString.isBlank()) return getString(R.string.ringtone_default)
         val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return getString(R.string.ringtone_default)
         val ringtone: Ringtone? = RingtoneManager.getRingtone(this, uri)

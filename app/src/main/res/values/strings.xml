@@ -24,6 +24,7 @@
     <string name="alarm_channel_name">Alarm ringing</string>
     <string name="alarm_saved">Alarm saved</string>
     <string name="ringtone_default">Default</string>
+    <string name="silent">Silent</string>
     <string name="notifications_permission_denied">Notifications are disabled. Alarms may not ring on time.</string>
     <string name="exact_alarm_permission_required">Exact alarm access is required for reliable alarms.</string>
     <string name="allow">Allow</string>

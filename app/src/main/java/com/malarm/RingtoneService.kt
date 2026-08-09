@@ -66,25 +66,27 @@ class RingtoneService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startRinging(alarm: Alarm) {
-        val uri = alarm.ringtone
-            .takeIf { it.isNotBlank() }
-            ?.let { runCatching { Uri.parse(it) }.getOrNull() }
-            ?.takeIf { it != Uri.EMPTY }
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        if (alarm.ringtone != RINGTONE_SILENT) {
+            val uri = alarm.ringtone
+                .takeIf { it.isNotBlank() }
+                ?.let { runCatching { Uri.parse(it) }.getOrNull() }
+                ?.takeIf { it != Uri.EMPTY }
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
-        player = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            )
-            setWakeMode(this@RingtoneService, PowerManager.PARTIAL_WAKE_LOCK)
-            isLooping = true
-            runCatching {
-                setDataSource(this@RingtoneService, uri)
-                prepare()
-                start()
+            player = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build(),
+                )
+                setWakeMode(this@RingtoneService, PowerManager.PARTIAL_WAKE_LOCK)
+                isLooping = true
+                runCatching {
+                    setDataSource(this@RingtoneService, uri)
+                    prepare()
+                    start()
+                }
             }
         }
         vibrate()
@@ -116,6 +118,7 @@ class RingtoneService : Service() {
 
     companion object {
         private const val RING_MAX_DURATION_MS = 5 * 60 * 1000L
+        const val RINGTONE_SILENT = "silent://"
 
         fun intent(context: Context, alarm: Alarm): Intent =
             Intent(context, RingtoneService::class.java)
