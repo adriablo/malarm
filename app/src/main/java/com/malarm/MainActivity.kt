@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.format.DateFormat
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -90,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
         binding.fab.setOnClickListener { showAlarmDialog(null) }
-        binding.settings.setOnClickListener { showSnoozeDialog() }
+        binding.settings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
 
         handleDebugIntent(intent)
         warnIfExactAlarmsUnavailable()
@@ -128,23 +127,6 @@ class MainActivity : AppCompatActivity() {
         store.save(alarm)
         scheduler.schedule(alarm)
         Toast.makeText(this, "Debug alarm scheduled in 1 min", Toast.LENGTH_LONG).show()
-    }
-
-    private fun showSnoozeDialog() {
-        val labels = (1..60).map { getString(R.string.minutes_format, it) }.toTypedArray()
-        val picker = NumberPicker(this).apply {
-            minValue = 1
-            maxValue = 60
-            wrapSelectorWheel = false
-            value = store.snoozeMinutes().coerceIn(minValue, maxValue)
-            displayedValues = labels
-        }
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.snooze_duration)
-            .setView(picker)
-            .setPositiveButton(R.string.save) { _, _ -> store.setSnoozeMinutes(picker.value) }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
