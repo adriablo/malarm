@@ -40,7 +40,7 @@ class AlarmAdapter(
             binding.enabled.setOnCheckedChangeListener(null)
             binding.time.text = AlarmFormatter.time(context, alarm)
             binding.label.text = alarm.label.ifBlank { context.getString(R.string.app_name) }
-            binding.repeat.text = AlarmFormatter.repeat(alarm)
+            binding.repeat.text = AlarmFormatter.repeat(context, alarm)
             binding.enabled.isChecked = alarm.enabled
 
             binding.enabled.setOnCheckedChangeListener { _, checked ->

@@ -20,6 +20,7 @@
     <string name="weekends">Weekends</string>
     <string name="monthly">Monthly</string>
     <string name="monthly_day">Day of month</string>
+    <string name="repeat_monthly_on_day">Monthly on day %1$d</string>
     <string name="choose_days">Choose days…</string>
     <string name="alarm_channel_name">Alarm ringing</string>
     <string name="alarm_saved">Alarm saved</string>

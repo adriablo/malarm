@@ -198,7 +198,7 @@ class MainActivity : AppCompatActivity() {
         db.dialogTime.text = AlarmFormatter.time(this, initial)
         db.dialogLabel.setText(initial.label)
         db.dialogDate.text = dateLabel(initial)
-        db.dialogRepeat.text = AlarmFormatter.repeat(initial)
+        db.dialogRepeat.text = AlarmFormatter.repeat(this, initial)
         db.dialogRingtone.text = getString(R.string.ringtone) + ": " + ringtoneTitle(initial.ringtone)
         db.dialogEnabled.isChecked = initial.enabled
         db.dialogDelete.visibility = if (alarm == null) android.view.View.GONE else android.view.View.VISIBLE
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
                     }.timeInMillis
                     editing = current.copy(dateMillis = midnight, repeatDays = emptySet())
                     db.dialogDate.text = dateLabel(editing!!)
-                    db.dialogRepeat.text = AlarmFormatter.repeat(editing!!)
+                    db.dialogRepeat.text = AlarmFormatter.repeat(this, editing!!)
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity() {
                 setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.clear)) { _, _ ->
                     editing = current.copy(dateMillis = null)
                     db.dialogDate.text = dateLabel(editing!!)
-                    db.dialogRepeat.text = AlarmFormatter.repeat(editing!!)
+                    db.dialogRepeat.text = AlarmFormatter.repeat(this@MainActivity, editing!!)
                 }
             }.show()
         }
@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.cancel, null)
                 .setOnDismissListener {
                     val result = editing ?: base
-                    db.dialogRepeat.text = AlarmFormatter.repeat(result)
+                    db.dialogRepeat.text = AlarmFormatter.repeat(this, result)
                     db.dialogDate.text = dateLabel(result)
                 }
                 .show()
@@ -371,7 +371,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton(R.string.cancel, null)
             .setOnDismissListener {
                 val result = editing ?: alarm
-                dialogBinding?.dialogRepeat?.text = AlarmFormatter.repeat(result)
+                dialogBinding?.dialogRepeat?.text = AlarmFormatter.repeat(this, result)
                 dialogBinding?.dialogDate?.text = dateLabel(result)
             }
             .show()
@@ -400,7 +400,7 @@ class MainActivity : AppCompatActivity() {
                     monthlyDay = day,
                     dateMillis = null,
                 )
-                dialogBinding?.dialogRepeat?.text = AlarmFormatter.repeat(editing!!)
+                dialogBinding?.dialogRepeat?.text = AlarmFormatter.repeat(this, editing!!)
                 dialogBinding?.dialogDate?.text = dateLabel(editing!!)
             }
             .setNegativeButton(R.string.cancel, null)
