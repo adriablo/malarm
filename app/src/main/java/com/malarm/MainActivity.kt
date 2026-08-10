@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var dialog: androidx.appcompat.app.AlertDialog? = null
     private var dialogBinding: DialogAlarmBinding? = null
     private var editing: Alarm? = null
+    private var isNewAlarm: Boolean = false
 
     private val ringtoneLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -190,7 +191,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAlarmDialog(alarm: Alarm?) {
-        val initial = alarm ?: Alarm(id = store.nextId(), hour = 8, minute = 0)
+        isNewAlarm = alarm == null
+        val initial = alarm ?: Alarm(id = 0, hour = 8, minute = 0)
         editing = initial
         val db = DialogAlarmBinding.inflate(layoutInflater)
         dialogBinding = db
@@ -332,6 +334,7 @@ class MainActivity : AppCompatActivity() {
             .setOnDismissListener {
                 dialogBinding = null
                 editing = null
+                isNewAlarm = false
             }
             .show()
     }
@@ -411,6 +414,7 @@ class MainActivity : AppCompatActivity() {
         val db = dialogBinding ?: return
         val current = editing ?: return
         val updated = current.copy(
+            id = if (isNewAlarm) store.nextId() else current.id,
             label = db.dialogLabel.text?.toString()?.trim().orEmpty(),
             enabled = db.dialogEnabled.isChecked,
         )
