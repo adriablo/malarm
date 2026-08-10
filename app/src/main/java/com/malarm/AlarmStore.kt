@@ -1,38 +1,46 @@
 package com.malarm
 
 import android.content.Context
-import org.json.JSONArray
+import org.json.JSONObject
 
 class AlarmStore(context: Context) {
     private val prefs = context.getSharedPreferences("malarm", Context.MODE_PRIVATE)
 
     fun all(): List<Alarm> {
-        val raw = prefs.getString(KEY_ALARMS, null) ?: return emptyList()
-        val arr = runCatching { JSONArray(raw) }.getOrNull() ?: return emptyList()
+        val obj = read() ?: return emptyList()
         return buildList {
-            for (i in 0 until arr.length()) {
-                val parsed = runCatching { Alarm.fromJson(arr.getJSONObject(i)) }.getOrNull()
+            val keys = obj.keys()
+            while (keys.hasNext()) {
+                val parsed = runCatching { Alarm.fromJson(obj.getJSONObject(keys.next())) }.getOrNull()
                 if (parsed != null) add(parsed)
             }
         }.sortedBy { it.hour * 60 + it.minute }
     }
 
-    fun get(id: Long): Alarm? = all().find { it.id == id }
+    fun get(id: Long): Alarm? {
+        val obj = read() ?: return null
+        val alarmJson = obj.optJSONObject(id.toString()) ?: return null
+        return runCatching { Alarm.fromJson(alarmJson) }.getOrNull()
+    }
 
     fun save(alarm: Alarm) {
-        val list = all().toMutableList()
-        val index = list.indexOfFirst { it.id == alarm.id }
-        if (index >= 0) list[index] = alarm else list.add(alarm)
-        persist(list)
+        val obj = read() ?: JSONObject()
+        obj.put(alarm.id.toString(), alarm.toJson())
+        persist(obj)
     }
 
     fun delete(id: Long) {
-        persist(all().filterNot { it.id == id })
+        val obj = read() ?: return
+        if (obj.remove(id.toString()) != null) {
+            persist(obj)
+        }
     }
 
     fun importAll(alarms: List<Alarm>): List<Alarm> {
         val renumbered = alarms.map { it.copy(id = nextId()) }
-        persist(renumbered)
+        val obj = JSONObject()
+        renumbered.forEach { obj.put(it.id.toString(), it.toJson()) }
+        persist(obj)
         return renumbered
     }
 
@@ -52,10 +60,13 @@ class AlarmStore(context: Context) {
         prefs.edit().putInt(KEY_SNOOZE_MINUTES, minutes).apply()
     }
 
-    private fun persist(list: List<Alarm>) {
-        val arr = JSONArray()
-        list.forEach { arr.put(it.toJson()) }
-        prefs.edit().putString(KEY_ALARMS, arr.toString()).commit()
+    private fun read(): JSONObject? {
+        val raw = prefs.getString(KEY_ALARMS, null) ?: return null
+        return runCatching { JSONObject(raw) }.getOrNull()
+    }
+
+    private fun persist(obj: JSONObject) {
+        prefs.edit().putString(KEY_ALARMS, obj.toString()).commit()
     }
 
     companion object {
