@@ -58,10 +58,18 @@ class AlarmStoreTest {
     }
 
     @Test
-    fun replaceAllReplacesList() {
+    fun importAllReplacesExistingAlarms() {
         store.save(Alarm(1, 8, 0))
-        store.replaceAll(listOf(Alarm(2, 9, 0)))
+        val imported = store.importAll(listOf(Alarm(7, 8, 0)))
+        assertEquals(1, imported.size)
         assertEquals(listOf(2L), store.all().map { it.id })
+    }
+
+    @Test
+    fun importAllAssignsDistinctFreshIds() {
+        val imported = store.importAll(listOf(Alarm(7, 8, 0), Alarm(3, 9, 0)))
+        assertEquals(listOf(1L, 2L), imported.map { it.id })
+        assertEquals(2, imported.map { it.id }.toSet().size)
     }
 
     @Test

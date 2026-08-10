@@ -78,9 +78,9 @@ class SettingsActivity : AppCompatActivity() {
     private fun applyImport(alarms: List<Alarm>) {
         val scheduler = AlarmScheduler(this)
         store.all().forEach { scheduler.cancel(it) }
-        store.replaceAll(alarms)
-        alarms.filter { it.enabled }.forEach { scheduler.schedule(it) }
-        Toast.makeText(this, getString(R.string.import_done, alarms.size), Toast.LENGTH_SHORT).show()
+        val imported = store.importAll(alarms)
+        imported.filter { it.enabled }.forEach { scheduler.schedule(it) }
+        Toast.makeText(this, getString(R.string.import_done, imported.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun updateSnoozeValue() {

@@ -30,10 +30,18 @@ class AlarmStore(context: Context) {
         persist(all().filterNot { it.id == id })
     }
 
-    fun replaceAll(alarms: List<Alarm>) = persist(alarms)
+    fun importAll(alarms: List<Alarm>): List<Alarm> {
+        val renumbered = alarms.map { it.copy(id = nextId()) }
+        persist(renumbered)
+        return renumbered
+    }
 
     fun nextId(): Long {
-        val id = prefs.getLong(KEY_NEXT_ID, 1L)
+        var id = prefs.getLong(KEY_NEXT_ID, 1L)
+        val used = all().mapTo(mutableSetOf()) { it.id }
+        while (id in used) {
+            id++
+        }
         prefs.edit().putLong(KEY_NEXT_ID, id + 1).commit()
         return id
     }
