@@ -72,8 +72,13 @@ class AlarmScheduler(private val context: Context) {
 
         internal fun nextTrigger(alarm: Alarm, now: Calendar): Long? {
             if (alarm.dateMillis != null) {
-                val trigger = alarm.dateMillis + alarm.hour * 3_600_000L + alarm.minute * 60_000L
-                return trigger.takeIf { it > now.timeInMillis }
+                val cal = now.clone() as Calendar
+                cal.timeInMillis = alarm.dateMillis
+                cal.set(Calendar.HOUR_OF_DAY, alarm.hour)
+                cal.set(Calendar.MINUTE, alarm.minute)
+                cal.set(Calendar.SECOND, 0)
+                cal.set(Calendar.MILLISECOND, 0)
+                return cal.timeInMillis.takeIf { it > now.timeInMillis }
             }
             if (alarm.monthlyDay != null) {
                 val cal = now.clone() as Calendar

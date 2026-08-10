@@ -1,6 +1,7 @@
 package com.malarm
 
 import java.util.Calendar
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -121,6 +122,34 @@ class AlarmSchedulerTest {
     fun dateAlarmInPastReturnsNull() {
         val alarm = Alarm(1, 8, 0, dateMillis = at(1, Calendar.AUGUST, 2026, 0, 0).timeInMillis)
         assertNull(AlarmScheduler.nextTrigger(alarm, now))
+    }
+
+    @Test
+    fun dateAlarmOnSpringForwardDayUsesWallClockTime() {
+        withTimeZone("America/New_York") {
+            val now = at(7, Calendar.MARCH, 2026, 12, 0)
+            val alarm = Alarm(1, 8, 0, dateMillis = at(8, Calendar.MARCH, 2026, 0, 0).timeInMillis)
+            expect(now, at(8, Calendar.MARCH, 2026, 8, 0), alarm)
+        }
+    }
+
+    @Test
+    fun dateAlarmOnFallBackDayUsesWallClockTime() {
+        withTimeZone("America/New_York") {
+            val now = at(31, Calendar.OCTOBER, 2026, 12, 0)
+            val alarm = Alarm(1, 8, 0, dateMillis = at(1, Calendar.NOVEMBER, 2026, 0, 0).timeInMillis)
+            expect(now, at(1, Calendar.NOVEMBER, 2026, 8, 0), alarm)
+        }
+    }
+
+    private fun withTimeZone(id: String, block: () -> Unit) {
+        val original = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone(id))
+        try {
+            block()
+        } finally {
+            TimeZone.setDefault(original)
+        }
     }
 
     @Test
