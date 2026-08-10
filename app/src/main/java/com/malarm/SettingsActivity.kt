@@ -64,6 +64,21 @@ class SettingsActivity : AppCompatActivity() {
         binding.importRow.setOnClickListener {
             importLauncher.launch(arrayOf("*/*"))
         }
+        binding.removeInactiveRow.setOnClickListener {
+            val inactive = store.all().filter {
+                !it.enabled || AlarmScheduler(this).nextTrigger(it) == null
+            }
+            if (inactive.isEmpty()) {
+                Toast.makeText(this, R.string.no_inactive_alarms, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.remove_inactive_alarms)
+                .setMessage(getString(R.string.remove_inactive_confirm, inactive.size))
+                .setPositiveButton(R.string.delete) { _, _ -> removeInactive(inactive) }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
         binding.githubRow.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_URL)))
         }
@@ -81,6 +96,13 @@ class SettingsActivity : AppCompatActivity() {
         val imported = store.importAll(alarms)
         imported.filter { it.enabled }.forEach { scheduler.schedule(it) }
         Toast.makeText(this, getString(R.string.import_done, imported.size), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun removeInactive(inactive: List<Alarm>) {
+        val scheduler = AlarmScheduler(this)
+        inactive.forEach { scheduler.cancel(it) }
+        store.deleteAll(inactive.map { it.id }.toSet())
+        Toast.makeText(this, getString(R.string.remove_inactive_done, inactive.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun updateSnoozeValue() {

@@ -36,6 +36,19 @@ class AlarmStore(context: Context) {
         }
     }
 
+    fun deleteAll(ids: Set<Long>) {
+        val obj = read() ?: return
+        var changed = false
+        for (id in ids) {
+            if (obj.remove(id.toString()) != null) {
+                changed = true
+            }
+        }
+        if (changed) {
+            persist(obj)
+        }
+    }
+
     fun importAll(alarms: List<Alarm>): List<Alarm> {
         val renumbered = alarms.map { it.copy(id = nextId()) }
         val obj = JSONObject()

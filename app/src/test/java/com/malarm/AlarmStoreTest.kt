@@ -56,6 +56,15 @@ class AlarmStoreTest {
     }
 
     @Test
+    fun deleteAllRemovesOnlyGivenIds() {
+        store.save(Alarm(1, 8, 0))
+        store.save(Alarm(2, 9, 0))
+        store.save(Alarm(3, 10, 0))
+        store.deleteAll(setOf(1L, 3L))
+        assertEquals(listOf(2L), store.all().map { it.id })
+    }
+
+    @Test
     fun importAllReplacesExistingAlarms() {
         store.save(Alarm(1, 8, 0))
         val imported = store.importAll(listOf(Alarm(7, 8, 0)))
