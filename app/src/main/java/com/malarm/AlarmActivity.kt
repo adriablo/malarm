@@ -11,8 +11,6 @@ import com.malarm.databinding.ActivityAlarmBinding
 
 class AlarmActivity : AppCompatActivity() {
 
-    enum class Action { SNOOZE, DISMISS }
-
     private lateinit var binding: ActivityAlarmBinding
     private var alarm: Alarm? = null
 
@@ -47,29 +45,7 @@ class AlarmActivity : AppCompatActivity() {
             finish()
         }
 
-        if (intent.getStringExtra(EXTRA_ACTION) == null) {
-            ContextCompat.startForegroundService(this, RingtoneService.intent(this, alarm!!))
-        }
-        handleAction(intent)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleAction(intent)
-    }
-
-    private fun handleAction(intent: Intent?) {
-        when (intent?.getStringExtra(EXTRA_ACTION)) {
-            Action.SNOOZE.name -> {
-                snooze()
-                finish()
-            }
-            Action.DISMISS.name -> {
-                dismiss()
-                finish()
-            }
-        }
+        ContextCompat.startForegroundService(this, RingtoneService.intent(this, alarm!!))
     }
 
     private fun snooze() {
@@ -89,12 +65,8 @@ class AlarmActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_ACTION = "com.malarm.EXTRA_ACTION"
-
-        fun intent(context: Context, alarmId: Long, action: Action? = null): Intent =
-            Intent(context, AlarmActivity::class.java).apply {
-                putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
-                putExtra(EXTRA_ACTION, action?.name)
-            }
+        fun intent(context: Context, alarmId: Long): Intent =
+            Intent(context, AlarmActivity::class.java)
+                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarmId)
     }
 }

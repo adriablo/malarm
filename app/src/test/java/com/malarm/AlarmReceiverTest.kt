@@ -94,4 +94,25 @@ class AlarmReceiverTest {
         receive(intentFor(1, snooze = true))
         assertTrue(channelExists())
     }
+
+    @Test
+    fun snoozeActionSchedulesSnoozeAndStopsRinging() {
+        store.save(Alarm(1, 8, 0))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_SNOOZE
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        assertEquals(1, scheduledAlarms.size)
+        assertFalse(channelExists())
+    }
+
+    @Test
+    fun dismissActionStopsRinging() {
+        store.save(Alarm(1, 8, 0))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+        })
+        assertTrue(scheduledAlarms.isEmpty())
+        assertFalse(channelExists())
+    }
 }

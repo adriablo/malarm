@@ -11,6 +11,32 @@ import androidx.core.content.ContextCompat
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            AlarmScheduler.ACTION_SNOOZE -> handleSnooze(context, intent)
+            AlarmScheduler.ACTION_DISMISS -> handleDismiss(context)
+            AlarmScheduler.ACTION_ALARM -> handleAlarm(context, intent)
+        }
+    }
+
+    private fun handleSnooze(context: Context, intent: Intent) {
+        val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
+        if (id < 0) return
+        val store = AlarmStore(context)
+        val alarm = store.get(id) ?: return
+        AlarmScheduler(context).scheduleSnooze(alarm, store.snoozeMinutes() * 60_000L)
+        stopRinging(context)
+    }
+
+    private fun handleDismiss(context: Context) {
+        stopRinging(context)
+    }
+
+    private fun stopRinging(context: Context) {
+        context.stopService(Intent(context, RingtoneService::class.java))
+        AlarmNotifier.cancel(context)
+    }
+
+    private fun handleAlarm(context: Context, intent: Intent) {
         if (intent.action != AlarmScheduler.ACTION_ALARM) return
         val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
         if (id < 0) return

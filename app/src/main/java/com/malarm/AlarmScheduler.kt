@@ -53,6 +53,8 @@ class AlarmScheduler(private val context: Context) {
 
     companion object {
         const val ACTION_ALARM = "com.malarm.ACTION_ALARM"
+        const val ACTION_SNOOZE = "com.malarm.ACTION_SNOOZE"
+        const val ACTION_DISMISS = "com.malarm.ACTION_DISMISS"
         const val EXTRA_ALARM_ID = "com.malarm.EXTRA_ALARM_ID"
         const val EXTRA_IS_SNOOZE = "com.malarm.EXTRA_IS_SNOOZE"
 

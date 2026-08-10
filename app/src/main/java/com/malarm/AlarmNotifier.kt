@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 
 object AlarmNotifier {
@@ -29,16 +30,19 @@ object AlarmNotifier {
             AlarmActivity.intent(context, alarm.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val snooze = PendingIntent.getActivity(
+        val snooze = PendingIntent.getBroadcast(
             context,
             AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_SNOOZE),
-            AlarmActivity.intent(context, alarm.id, AlarmActivity.Action.SNOOZE),
+            Intent(context, AlarmReceiver::class.java)
+                .setAction(AlarmScheduler.ACTION_SNOOZE)
+                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val dismiss = PendingIntent.getActivity(
+        val dismiss = PendingIntent.getBroadcast(
             context,
             AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_DISMISS),
-            AlarmActivity.intent(context, alarm.id, AlarmActivity.Action.DISMISS),
+            Intent(context, AlarmReceiver::class.java)
+                .setAction(AlarmScheduler.ACTION_DISMISS),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Builder(context, CHANNEL_ID)
