@@ -25,6 +25,11 @@ must never break the F-Droid build/update pipeline.
 
 - Publish a new release: bump versionName/versionCode, tag `vX.Y.Z`, push tag.
   F-Droid picks it up automatically (~24-48h).
+- Attach the **debug-signed APK** (`app/build/outputs/apk/debug/malarm.apk`) to
+  the GitHub release as the `malarm.apk` asset. The release APK is unsigned and
+  cannot be installed directly, so the debug APK is the installable build users
+  download from GitHub. Do not attach the unsigned release APK (`app/build/
+  outputs/apk/release/malarm.apk`) or a separate `malarm-debug.apk` asset.
 - Do not touch the GitLab fork or open new MRs unless the build recipe changes.
 - Never commit or push to any repository (GitHub, GitLab, or otherwise)
   without explicit user approval. Show proposed changes and wait for a
