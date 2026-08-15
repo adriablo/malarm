@@ -1,0 +1,8 @@
+New in 0.5.0:
+- Notification actions (Snooze/Dismiss) now work without opening the alarm screen
+- New setting to bulk-remove inactive alarms
+- Improved DST handling for date-based alarms
+- Alarm IDs are renumbered on import to avoid collisions
+- Localized repeat-day and monthly strings
+- Alarms stored more efficiently as a map
+- Alarm ID allocated only when saving (not when opening dialog)
