@@ -154,11 +154,11 @@ class MainActivity : AppCompatActivity() {
     private fun handleDebugIntent(intent: Intent) {
         if (!BuildConfig.DEBUG) return
         if (!intent.getBooleanExtra("debug_schedule", false)) return
-        val now = Calendar.getInstance()
+        val cal = Calendar.getInstance().apply { add(Calendar.MINUTE, 1) }
         val alarm = Alarm(
             id = store.nextId(),
-            hour = now.get(Calendar.HOUR_OF_DAY),
-            minute = now.get(Calendar.MINUTE) + 1,
+            hour = cal.get(Calendar.HOUR_OF_DAY),
+            minute = cal.get(Calendar.MINUTE),
             label = "Debug alarm",
             enabled = true,
         )
