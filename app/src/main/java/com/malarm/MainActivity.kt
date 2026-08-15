@@ -3,8 +3,11 @@ package com.malarm
 import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentFilter
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
@@ -30,6 +33,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var store: AlarmStore
     private lateinit var scheduler: AlarmScheduler
     private lateinit var adapter: AlarmAdapter
+
+    private val timeChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            AlarmReceiver().onReceive(context, intent)
+        }
+    }
 
     private var dialog: androidx.appcompat.app.AlertDialog? = null
     private var dialogBinding: DialogAlarmBinding? = null
@@ -118,6 +127,20 @@ class MainActivity : AppCompatActivity() {
 
         requestNotificationPermissionIfNeeded()
         updatePermissionGate()
+
+        registerReceiver(
+            timeChangeReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_TIME_CHANGED)
+                addAction(Intent.ACTION_TIMEZONE_CHANGED)
+            },
+        )
+        scheduler.scheduleDailyReschedule()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        runCatching { unregisterReceiver(timeChangeReceiver) }
     }
 
     override fun onResume() {

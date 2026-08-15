@@ -33,6 +33,26 @@ class AlarmScheduler(private val context: Context) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
     }
 
+    fun scheduleDailyReschedule() {
+        val cal = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        alarmManager.setInexactRepeating(
+            AlarmManager.RTC,
+            cal.timeInMillis,
+            AlarmManager.INTERVAL_DAY,
+            rescheduleAllPendingIntent(),
+        )
+    }
+
+    fun cancelDailyReschedule() {
+        alarmManager.cancel(rescheduleAllPendingIntent())
+    }
+
     private fun setExact(triggerAtMillis: Long, pi: PendingIntent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             // Exact alarms not granted: degrade to an inexact 1-minute window so the
@@ -55,6 +75,7 @@ class AlarmScheduler(private val context: Context) {
         const val ACTION_ALARM = "com.malarm.ACTION_ALARM"
         const val ACTION_SNOOZE = "com.malarm.ACTION_SNOOZE"
         const val ACTION_DISMISS = "com.malarm.ACTION_DISMISS"
+        const val ACTION_RESCHEDULE_ALL = "com.malarm.ACTION_RESCHEDULE_ALL"
         const val EXTRA_ALARM_ID = "com.malarm.EXTRA_ALARM_ID"
         const val EXTRA_IS_SNOOZE = "com.malarm.EXTRA_IS_SNOOZE"
 
@@ -66,6 +87,7 @@ class AlarmScheduler(private val context: Context) {
         const val ROLE_ACTION_SNOOZE = 3
         const val ROLE_ACTION_DISMISS = 4
         private const val ROLE_STRIDE = 5
+        private const val REQUEST_DAILY_RESCHEDULE = 1000
 
         fun requestCode(alarmId: Long, role: Int): Int {
             val hash = (alarmId xor (alarmId ushr 32)).toInt()
@@ -126,6 +148,18 @@ class AlarmScheduler(private val context: Context) {
         return PendingIntent.getBroadcast(
             context,
             requestCode(alarmId, role),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    private fun rescheduleAllPendingIntent(): PendingIntent {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_RESCHEDULE_ALL
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            REQUEST_DAILY_RESCHEDULE,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

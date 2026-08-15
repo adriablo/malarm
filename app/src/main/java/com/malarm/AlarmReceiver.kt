@@ -14,6 +14,16 @@ class AlarmReceiver : BroadcastReceiver() {
             AlarmScheduler.ACTION_SNOOZE -> handleSnooze(context, intent)
             AlarmScheduler.ACTION_DISMISS -> handleDismiss(context)
             AlarmScheduler.ACTION_ALARM -> handleAlarm(context, intent)
+            AlarmScheduler.ACTION_RESCHEDULE_ALL -> handleRescheduleAll(context)
+        }
+    }
+
+    private fun handleRescheduleAll(context: Context) {
+        val store = AlarmStore(context)
+        val scheduler = AlarmScheduler(context)
+        for (alarm in store.all()) {
+            scheduler.cancel(alarm)
+            if (alarm.enabled) scheduler.schedule(alarm)
         }
     }
 
