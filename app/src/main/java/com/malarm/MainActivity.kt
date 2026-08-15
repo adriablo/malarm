@@ -36,7 +36,11 @@ class MainActivity : AppCompatActivity() {
 
     private val timeChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            AlarmReceiver().onReceive(context, intent)
+            store.all().forEach { alarm ->
+                scheduler.cancel(alarm)
+                if (alarm.enabled) scheduler.schedule(alarm)
+            }
+            scheduler.scheduleDailyReschedule()
         }
     }
 
