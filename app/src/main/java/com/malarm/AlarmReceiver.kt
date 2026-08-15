@@ -1,6 +1,5 @@
 package com.malarm
 
-import android.app.ForegroundServiceStartNotAllowedException
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -62,11 +61,9 @@ class AlarmReceiver : BroadcastReceiver() {
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "${context.packageName}:bridge")
         bridgeLock.acquire(BRIDGE_LOCK_TIMEOUT_MS)
 
-        try {
+        if (scheduler.canScheduleExact()) {
             ContextCompat.startForegroundService(context, RingtoneService.intent(context, alarm))
-        } catch (e: ForegroundServiceStartNotAllowedException) {
-            // AlarmManager grants a temp allowlist for real alarm fires; when that
-            // is unavailable, fall back to a full-screen intent notification.
+        } else {
             val manager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.notify(AlarmNotifier.NOTIFICATION_ID, AlarmNotifier.build(context, alarm))
