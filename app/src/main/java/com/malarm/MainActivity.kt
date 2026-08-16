@@ -13,6 +13,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.widget.Toast
@@ -43,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                 if (alarm.enabled) scheduler.schedule(alarm)
             }
             store.setTimeZoneId(TimeZone.getDefault().id)
+            store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
             scheduler.schedulePeriodicReschedule()
         }
     }
@@ -142,6 +144,7 @@ class MainActivity : AppCompatActivity() {
                 addAction(Intent.ACTION_TIMEZONE_CHANGED)
             },
         )
+        store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
         scheduler.schedulePeriodicReschedule()
     }
 

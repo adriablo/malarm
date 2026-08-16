@@ -3,6 +3,7 @@ package com.malarm
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -20,5 +21,6 @@ class BootReceiver : BroadcastReceiver() {
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         scheduler.schedulePeriodicReschedule()
+        store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
     }
 }

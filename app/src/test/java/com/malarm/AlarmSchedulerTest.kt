@@ -3,6 +3,7 @@ package com.malarm
 import java.util.Calendar
 import java.util.TimeZone
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -198,5 +199,29 @@ class AlarmSchedulerTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun clockJumpedFalseWhenWallClockTracksElapsed() {
+        // calibration at t=0; after 4h elapsed, wall also moved 4h -> no jump
+        assertFalse(AlarmScheduler.clockJumped(0L, 1_000_000_000_000L, 4 * 3600_000L, 1_000_000_000_000L + 4 * 3600_000L))
+    }
+
+    @Test
+    fun clockJumpedTrueWhenWallClockMovesAhead() {
+        // wall moved 6h while only 4h elapsed -> 2h manual forward jump
+        assertTrue(AlarmScheduler.clockJumped(0L, 1_000_000_000_000L, 4 * 3600_000L, 1_000_000_000_000L + 6 * 3600_000L))
+    }
+
+    @Test
+    fun clockJumpedTrueWhenWallClockMovesBack() {
+        // wall moved 2h while 4h elapsed -> 2h manual backward jump
+        assertTrue(AlarmScheduler.clockJumped(0L, 1_000_000_000_000L, 4 * 3600_000L, 1_000_000_000_000L + 2 * 3600_000L))
+    }
+
+    @Test
+    fun clockJumpedFalseForSubToleranceDrift() {
+        // 1 minute drift is within the 2-minute tolerance
+        assertFalse(AlarmScheduler.clockJumped(0L, 1_000_000_000_000L, 3600_000L, 1_000_000_000_000L + 3600_000L + 60_000L))
     }
 }

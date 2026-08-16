@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.SystemClock
 import java.util.Calendar
 
 class AlarmScheduler(private val context: Context) {
@@ -35,8 +36,8 @@ class AlarmScheduler(private val context: Context) {
 
     fun schedulePeriodicReschedule() {
         alarmManager.setInexactRepeating(
-            AlarmManager.RTC,
-            System.currentTimeMillis() + 4 * AlarmManager.INTERVAL_HOUR,
+            AlarmManager.ELAPSED_REALTIME,
+            SystemClock.elapsedRealtime() + 4 * AlarmManager.INTERVAL_HOUR,
             4 * AlarmManager.INTERVAL_HOUR,
             rescheduleAllPendingIntent(),
         )
@@ -85,6 +86,16 @@ class AlarmScheduler(private val context: Context) {
         fun requestCode(alarmId: Long, role: Int): Int {
             val hash = (alarmId xor (alarmId ushr 32)).toInt()
             return hash * ROLE_STRIDE + role
+        }
+
+        internal const val CLOCK_JUMP_TOLERANCE_MS = 2 * 60 * 1000L
+
+        // A manual clock change makes the wall clock diverge from the monotonic
+        // clock. Compare the elapsed-realtime-based expectation against the real
+        // wall clock; a difference beyond tolerance means the user set the clock.
+        internal fun clockJumped(calibElapsed: Long, calibWall: Long, nowElapsed: Long, nowWall: Long): Boolean {
+            val expectedWall = calibWall + (nowElapsed - calibElapsed)
+            return kotlin.math.abs(nowWall - expectedWall) > CLOCK_JUMP_TOLERANCE_MS
         }
 
         internal fun nextTrigger(alarm: Alarm, now: Calendar): Long? {

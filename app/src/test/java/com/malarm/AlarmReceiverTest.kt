@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
+import android.os.SystemClock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -123,10 +124,18 @@ class AlarmReceiverTest {
         })
     }
 
+    private fun seedCalibration() {
+        store.setClockCalibration(
+            SystemClock.elapsedRealtime(),
+            System.currentTimeMillis(),
+        )
+    }
+
     @Test
     fun rescheduleAllIsNoOpWhenTimezoneUnchanged() {
         store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
         store.setTimeZoneId(TimeZone.getDefault().id)
+        seedCalibration()
         rescheduleAll()
         assertTrue(scheduledAlarms.isEmpty())
     }
@@ -135,6 +144,7 @@ class AlarmReceiverTest {
     fun rescheduleAllReArmsAlarmsWhenTimezoneChanged() {
         store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
         store.setTimeZoneId("not/current")
+        seedCalibration()
         rescheduleAll()
         assertEquals(1, scheduledAlarms.size)
         assertEquals(TimeZone.getDefault().id, store.timeZoneId())

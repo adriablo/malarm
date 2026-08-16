@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import java.util.TimeZone
 
@@ -22,13 +23,26 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleRescheduleAll(context: Context) {
         val store = AlarmStore(context)
         val current = TimeZone.getDefault().id
-        if (current == store.timeZoneId()) return
+        val timezoneChanged = current != store.timeZoneId()
+        val clockJumped = clockJumped(store)
+        if (!timezoneChanged && !clockJumped) return
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {
             scheduler.cancel(alarm)
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         store.setTimeZoneId(current)
+        store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+    }
+
+    private fun clockJumped(store: AlarmStore): Boolean {
+        val calib = store.clockCalibration() ?: return true
+        return AlarmScheduler.clockJumped(
+            calibElapsed = calib.first,
+            calibWall = calib.second,
+            nowElapsed = SystemClock.elapsedRealtime(),
+            nowWall = System.currentTimeMillis(),
+        )
     }
 
     private fun handleSnooze(context: Context, intent: Intent) {

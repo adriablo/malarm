@@ -79,6 +79,19 @@ class AlarmStore(context: Context) {
         prefs.edit().putString(KEY_TIME_ZONE_ID, id).apply()
     }
 
+    fun clockCalibration(): Pair<Long, Long>? {
+        val elapsed = prefs.getLong(KEY_CALIB_ELAPSED, -1L)
+        val wall = prefs.getLong(KEY_CALIB_WALL, -1L)
+        return if (elapsed >= 0 && wall >= 0) elapsed to wall else null
+    }
+
+    fun setClockCalibration(elapsedRealtime: Long, wallClockMillis: Long) {
+        prefs.edit()
+            .putLong(KEY_CALIB_ELAPSED, elapsedRealtime)
+            .putLong(KEY_CALIB_WALL, wallClockMillis)
+            .apply()
+    }
+
     private fun read(): JSONObject? {
         val raw = prefs.getString(KEY_ALARMS, null) ?: return null
         return runCatching { JSONObject(raw) }.getOrNull()
@@ -93,6 +106,8 @@ class AlarmStore(context: Context) {
         private const val KEY_NEXT_ID = "nextId"
         private const val KEY_SNOOZE_MINUTES = "snoozeMinutes"
         private const val KEY_TIME_ZONE_ID = "timeZoneId"
+        private const val KEY_CALIB_ELAPSED = "calibElapsed"
+        private const val KEY_CALIB_WALL = "calibWall"
         const val DEFAULT_SNOOZE_MINUTES = 5
     }
 }
