@@ -94,13 +94,6 @@ class AlarmSchedulerAndroidTest {
     }
 
     @Test
-    fun cancelSnoozeRemovesSnoozeAlarm() {
-        scheduler.scheduleSnooze(repeating, 60_000L)
-        scheduler.cancelSnooze(repeating)
-        assertTrue(alarmManager.scheduledAlarms.isEmpty())
-    }
-
-    @Test
     fun usesAlarmClockWhenExactAlarmsGranted() {
         ShadowAlarmManager.setCanScheduleExactAlarms(true)
         scheduler.schedule(repeating)

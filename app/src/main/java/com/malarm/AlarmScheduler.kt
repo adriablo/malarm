@@ -33,11 +33,6 @@ class AlarmScheduler(private val context: Context) {
         EventLog.log(context, EventType.SNOOZED, alarm.id, alarm.label, "Delay: ${delayMillis}ms")
     }
 
-    fun cancelSnooze(alarm: Alarm) {
-        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
-        EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label, "Snooze")
-    }
-
     fun schedulePeriodicReschedule() {
         alarmManager.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME,
