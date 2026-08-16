@@ -16,11 +16,13 @@ class AlarmScheduler(private val context: Context) {
     fun schedule(alarm: Alarm) {
         val trigger = nextTrigger(alarm) ?: return
         setExact(trigger, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
     }
 
     fun cancel(alarm: Alarm) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
+        EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label)
     }
 
     fun scheduleSnooze(alarm: Alarm, delayMillis: Long) {
@@ -28,10 +30,12 @@ class AlarmScheduler(private val context: Context) {
             System.currentTimeMillis() + delayMillis,
             alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true),
         )
+        EventLog.log(context, EventType.SNOOZED, alarm.id, alarm.label, "Delay: ${delayMillis}ms")
     }
 
     fun cancelSnooze(alarm: Alarm) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
+        EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label, "Snooze")
     }
 
     fun schedulePeriodicReschedule() {
@@ -41,6 +45,7 @@ class AlarmScheduler(private val context: Context) {
             4 * AlarmManager.INTERVAL_HOUR,
             rescheduleAllPendingIntent(),
         )
+        EventLog.log(context, EventType.PERIODIC_CHECK)
     }
 
     private fun setExact(triggerAtMillis: Long, pi: PendingIntent) {

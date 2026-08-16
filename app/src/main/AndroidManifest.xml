@@ -39,6 +39,10 @@
             android:name=".SettingsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".EventLogActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".AlarmReceiver"
             android:exported="false" />

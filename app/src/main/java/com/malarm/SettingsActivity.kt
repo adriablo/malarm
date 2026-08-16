@@ -83,6 +83,10 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(Intent.ACTION_VIEW, GITHUB_URL.toUri()))
         }
 
+        binding.eventLogRow.setOnClickListener {
+            startActivity(Intent(this, EventLogActivity::class.java))
+        }
+
         binding.versionValue.text = getString(
             R.string.version_format,
             BuildConfig.VERSION_NAME,
@@ -95,6 +99,7 @@ class SettingsActivity : AppCompatActivity() {
         store.all().forEach { scheduler.cancel(it) }
         val imported = store.importAll(alarms)
         imported.filter { it.enabled }.forEach { scheduler.schedule(it) }
+        EventLog.log(this, EventType.IMPORTED, details = "${imported.size} alarms")
         Toast.makeText(this, resources.getQuantityString(R.plurals.import_done, imported.size, imported.size), Toast.LENGTH_SHORT).show()
     }
 
@@ -102,6 +107,7 @@ class SettingsActivity : AppCompatActivity() {
         val scheduler = AlarmScheduler(this)
         inactive.forEach { scheduler.cancel(it) }
         store.deleteAll(inactive.map { it.id }.toSet())
+        EventLog.log(this, EventType.DELETED, details = "${inactive.size} inactive alarms removed")
         Toast.makeText(this, resources.getQuantityString(R.plurals.remove_inactive_done, inactive.size, inactive.size), Toast.LENGTH_SHORT).show()
     }
 

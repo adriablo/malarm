@@ -21,6 +21,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleRescheduleAll(context: Context) {
+        EventLog.log(context, EventType.RESCHEDULE_ALL)
         val store = AlarmStore(context)
         val current = TimeZone.getDefault().id
         val timezoneChanged = current != store.timeZoneId()
@@ -51,10 +52,12 @@ class AlarmReceiver : BroadcastReceiver() {
         val store = AlarmStore(context)
         val alarm = store.get(id) ?: return
         AlarmScheduler(context).scheduleSnooze(alarm, store.snoozeMinutes() * 60_000L)
+        EventLog.log(context, EventType.SNOOZED, id, alarm.label)
         stopRinging(context)
     }
 
     private fun handleDismiss(context: Context) {
+        EventLog.log(context, EventType.DISMISSED)
         stopRinging(context)
     }
 
@@ -72,6 +75,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val store = AlarmStore(context)
         val alarm = store.get(id) ?: return
         if (!alarm.enabled && !isSnooze) return
+
+        EventLog.log(context, EventType.FIRED, id, alarm.label, if (isSnooze) "Snooze" else "Alarm")
 
         val scheduler = AlarmScheduler(context)
         if (!isSnooze) {

@@ -14,6 +14,7 @@ class BootReceiver : BroadcastReceiver() {
         ) {
             return
         }
+        EventLog.log(context, EventType.BOOT_COMPLETED)
         val store = AlarmStore(context)
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {

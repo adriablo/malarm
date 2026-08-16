@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     private val timeChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            EventLog.log(context, EventType.TIMEZONE_CHANGED)
             store.all().forEach { alarm ->
                 scheduler.cancel(alarm)
                 if (alarm.enabled) scheduler.schedule(alarm)
@@ -105,6 +106,7 @@ class MainActivity : AppCompatActivity() {
                 val updated = alarm.copy(enabled = enabled)
                 store.save(updated)
                 if (enabled) scheduler.schedule(updated) else scheduler.cancel(updated)
+                EventLog.log(this@MainActivity, if (enabled) EventType.ENABLED else EventType.DISABLED, alarm.id, alarm.label)
                 adapter.submit(store.all())
             }
 
@@ -113,6 +115,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDelete(alarm: Alarm) {
                 scheduler.cancel(alarm)
                 store.delete(alarm.id)
+                EventLog.log(this@MainActivity, EventType.DELETED, alarm.id, alarm.label)
                 adapter.submit(store.all())
             }
         })
@@ -462,6 +465,7 @@ class MainActivity : AppCompatActivity() {
             if (trigger != null) {
                 store.save(updated)
                 scheduler.schedule(updated)
+                EventLog.log(this, EventType.SCHEDULED, updated.id, updated.label, "Saved: ${updated.hour}:${updated.minute}")
                 Toast.makeText(
                     this,
                     getString(R.string.will_ring_in, timeUntil(trigger)),
@@ -470,10 +474,12 @@ class MainActivity : AppCompatActivity() {
             } else {
                 updated = updated.copy(enabled = false)
                 store.save(updated)
+                EventLog.log(this, EventType.DISABLED, updated.id, updated.label, "Will never ring")
                 Toast.makeText(this, R.string.alarm_will_never_ring, Toast.LENGTH_LONG).show()
             }
         } else {
             store.save(updated)
+            EventLog.log(this, EventType.DISABLED, updated.id, updated.label)
             Toast.makeText(this, R.string.alarm_saved, Toast.LENGTH_SHORT).show()
         }
         adapter.submit(store.all())

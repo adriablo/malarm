@@ -72,4 +72,8 @@
         <item quantity="other">%1$d inactive alarms removed</item>
     </plurals>
     <string name="no_inactive_alarms">No inactive alarms</string>
+    <string name="event_log">Event log</string>
+    <string name="export">Export</string>
+    <string name="clear_log_confirm">Clear all event log entries?</string>
+    <string name="log_cleared">Log cleared</string>
 </resources>
