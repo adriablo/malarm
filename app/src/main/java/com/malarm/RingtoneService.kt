@@ -81,7 +81,6 @@ class RingtoneService : Service() {
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build(),
                 )
-                setWakeMode(this@RingtoneService, PowerManager.PARTIAL_WAKE_LOCK)
                 isLooping = true
                 runCatching {
                     setDataSource(this@RingtoneService, uri)
