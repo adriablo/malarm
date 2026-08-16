@@ -22,7 +22,7 @@ adb install malarm.apk
 ## Build Requirements
 
 - JDK 17+
-- Android SDK (compileSdk 36, targetSdk 35)
+- Android SDK (compileSdk 36, targetSdk 36)
 - Gradle 8.13 (wrapper included)
 - Runs on Android 8.0+ (minSdk 26)
 
