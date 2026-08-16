@@ -1,0 +1,4 @@
+New in 0.5.3:
+- Snooze presets from 5 minutes to 8 hours, or a custom duration — from the notification or the full-screen alarm
+- Built-in event log showing what each alarm did (Settings → Event log)
+- Alarm buttons no longer overlap the system navigation bar

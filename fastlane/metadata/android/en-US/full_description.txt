@@ -4,11 +4,12 @@ Features:
 
 * One-time and date-specific alarms (e.g. "Rent due on the 15th")
 * Repeat schedules: daily, weekdays, weekends, weekly, or monthly
-* Configurable snooze duration from 1 to 60 minutes
+* Snooze presets from 5 minutes to 8 hours, or pick a custom duration
 * Full-screen alarm over the lock screen, with the sound of your choice or silent
 * Alarms re-schedule to the correct local time when your time or timezone changes
 * Export and import all alarms as a backup file
 * Remove inactive alarms in one tap
+* Built-in event log that shows what each alarm did
 * Works completely offline — no ads, no tracking, no accounts
 
 The app never sends data anywhere: it has no INTERNET permission at all. On newer Android versions it asks for the permissions needed to ring and wake the screen (notifications, full-screen alerts, and exact-alarm access). It is free and open source software, released under the MIT license.
