@@ -45,7 +45,7 @@ android {
 
     applicationVariants.all {
         outputs.all {
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+            (this as com.android.build.gradle.api.ApkVariantOutput).outputFileName =
                 "malarm.apk"
         }
     }
