@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.malarm.databinding.ActivityAlarmBinding
 
 class AlarmActivity : AppCompatActivity() {
@@ -23,6 +25,19 @@ class AlarmActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
             window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
+
+        // Keep the Snooze/Dismiss buttons clear of the system navigation bar.
+        val baseBottom = binding.root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                baseBottom + bottomInset,
+            )
+            insets
         }
 
         val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
