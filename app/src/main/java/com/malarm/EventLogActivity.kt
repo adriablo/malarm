@@ -26,8 +26,6 @@ class EventLogActivity : AppCompatActivity() {
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
 
-        loadEvents()
-
         binding.btnExport.setOnClickListener { exportLog() }
         binding.btnClear.setOnClickListener { clearLog() }
     }
