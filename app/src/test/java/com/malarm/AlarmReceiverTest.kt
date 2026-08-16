@@ -16,6 +16,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.util.Calendar
+import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -114,5 +115,28 @@ class AlarmReceiverTest {
         })
         assertTrue(scheduledAlarms.isEmpty())
         assertFalse(channelExists())
+    }
+
+    private fun rescheduleAll() {
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_RESCHEDULE_ALL
+        })
+    }
+
+    @Test
+    fun rescheduleAllIsNoOpWhenTimezoneUnchanged() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        store.setTimeZoneId(TimeZone.getDefault().id)
+        rescheduleAll()
+        assertTrue(scheduledAlarms.isEmpty())
+    }
+
+    @Test
+    fun rescheduleAllReArmsAlarmsWhenTimezoneChanged() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        store.setTimeZoneId("not/current")
+        rescheduleAll()
+        assertEquals(1, scheduledAlarms.size)
+        assertEquals(TimeZone.getDefault().id, store.timeZoneId())
     }
 }

@@ -26,6 +26,7 @@ import com.malarm.BuildConfig
 import com.malarm.databinding.ActivityMainBinding
 import com.malarm.databinding.DialogAlarmBinding
 import java.util.Calendar
+import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
                 scheduler.cancel(alarm)
                 if (alarm.enabled) scheduler.schedule(alarm)
             }
+            store.setTimeZoneId(TimeZone.getDefault().id)
             scheduler.schedulePeriodicReschedule()
         }
     }

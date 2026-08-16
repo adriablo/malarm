@@ -73,6 +73,12 @@ class AlarmStore(context: Context) {
         prefs.edit().putInt(KEY_SNOOZE_MINUTES, minutes).apply()
     }
 
+    fun timeZoneId(): String? = prefs.getString(KEY_TIME_ZONE_ID, null)
+
+    fun setTimeZoneId(id: String) {
+        prefs.edit().putString(KEY_TIME_ZONE_ID, id).apply()
+    }
+
     private fun read(): JSONObject? {
         val raw = prefs.getString(KEY_ALARMS, null) ?: return null
         return runCatching { JSONObject(raw) }.getOrNull()
@@ -86,6 +92,7 @@ class AlarmStore(context: Context) {
         private const val KEY_ALARMS = "alarms"
         private const val KEY_NEXT_ID = "nextId"
         private const val KEY_SNOOZE_MINUTES = "snoozeMinutes"
+        private const val KEY_TIME_ZONE_ID = "timeZoneId"
         const val DEFAULT_SNOOZE_MINUTES = 5
     }
 }
