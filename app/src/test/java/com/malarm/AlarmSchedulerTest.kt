@@ -38,8 +38,8 @@ class AlarmSchedulerTest {
     }
 
     @Test
-    fun oneShotEarlierTodayReturnsNull() {
-        assertNull(AlarmScheduler.nextTrigger(Alarm(1, 1, 0), now))
+    fun oneShotEarlierTodayRollsToTomorrow() {
+        expect(at(7, Calendar.AUGUST, 2026, 1, 0), Alarm(1, 1, 0))
     }
 
     @Test

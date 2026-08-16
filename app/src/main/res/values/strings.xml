@@ -26,6 +26,12 @@
     <string name="choose_days">Choose days…</string>
     <string name="alarm_channel_name">Alarm ringing</string>
     <string name="alarm_saved">Alarm saved</string>
+    <string name="alarm_will_never_ring">This alarm will never ring and was disabled</string>
+    <string name="will_ring_in">Will ring in %1$s</string>
+    <string name="weeks_days">%1$d w %2$d d</string>
+    <string name="days_hours">%1$d d %2$d h</string>
+    <string name="hours_minutes">%1$d h %2$d min</string>
+    <string name="minutes_only">%1$d min</string>
     <string name="ringtone_default">Default</string>
     <string name="silent">Silent</string>
     <string name="notifications_permission_denied">Notifications are disabled. Alarms may not ring on time.</string>

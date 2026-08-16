@@ -1,0 +1,4 @@
+New in 0.5.2:
+- One-shot alarms set to a time already passed now ring at that time tomorrow
+- Saving an alarm shows how long until it rings (e.g. "Will ring in 8 h 30 min")
+- Alarms that can never ring are automatically disabled with a message

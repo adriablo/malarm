@@ -136,7 +136,12 @@ class AlarmScheduler(private val context: Context) {
             cal.set(Calendar.SECOND, 0)
             cal.set(Calendar.MILLISECOND, 0)
             if (!alarm.isRepeating) {
-                return if (cal.timeInMillis > now.timeInMillis) cal.timeInMillis else null
+                return if (cal.timeInMillis > now.timeInMillis) {
+                    cal.timeInMillis
+                } else {
+                    cal.add(Calendar.DAY_OF_YEAR, 1)
+                    cal.timeInMillis
+                }
             }
             val days = alarm.repeatDays
             for (i in 0..7) {

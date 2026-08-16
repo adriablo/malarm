@@ -451,16 +451,46 @@ class MainActivity : AppCompatActivity() {
     private fun saveDialog() {
         val db = dialogBinding ?: return
         val current = editing ?: return
-        val updated = current.copy(
+        var updated = current.copy(
             id = if (isNewAlarm) store.nextId() else current.id,
             label = db.dialogLabel.text?.toString()?.trim().orEmpty(),
             enabled = db.dialogEnabled.isChecked,
         )
         scheduler.cancel(updated)
-        store.save(updated)
-        if (updated.enabled) scheduler.schedule(updated)
+        if (updated.enabled) {
+            val trigger = scheduler.nextTrigger(updated)
+            if (trigger != null) {
+                store.save(updated)
+                scheduler.schedule(updated)
+                Toast.makeText(
+                    this,
+                    getString(R.string.will_ring_in, timeUntil(trigger)),
+                    Toast.LENGTH_LONG,
+                ).show()
+            } else {
+                updated = updated.copy(enabled = false)
+                store.save(updated)
+                Toast.makeText(this, R.string.alarm_will_never_ring, Toast.LENGTH_LONG).show()
+            }
+        } else {
+            store.save(updated)
+            Toast.makeText(this, R.string.alarm_saved, Toast.LENGTH_SHORT).show()
+        }
         adapter.submit(store.all())
-        Toast.makeText(this, R.string.alarm_saved, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun timeUntil(triggerMillis: Long): String {
+        val totalMinutes = ((triggerMillis - System.currentTimeMillis()) / 60_000L).coerceAtLeast(1)
+        val weeks = totalMinutes / (7 * 24 * 60)
+        val days = (totalMinutes % (7 * 24 * 60)) / (24 * 60)
+        val hours = (totalMinutes % (24 * 60)) / 60
+        val minutes = totalMinutes % 60
+        return when {
+            weeks > 0 -> getString(R.string.weeks_days, weeks, days)
+            days > 0 -> getString(R.string.days_hours, days, hours)
+            hours > 0 -> getString(R.string.hours_minutes, hours, minutes)
+            else -> getString(R.string.minutes_only, minutes)
+        }
     }
 
     private fun dateLabel(alarm: Alarm): String =
