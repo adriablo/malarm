@@ -7,9 +7,11 @@
     <string name="snooze">Snooze</string>
     <string name="repeat">Repeat</string>
     <string name="date">Date</string>
+    <string name="date_format">%1$s: %2$s</string>
     <string name="date_none">None</string>
     <string name="clear">Clear</string>
     <string name="ringtone">Ringtone</string>
+    <string name="ringtone_format">%1$s: %2$s</string>
     <string name="label">Label</string>
     <string name="enabled">Enabled</string>
     <string name="save">Save</string>
@@ -46,10 +48,22 @@
     <string name="export_error">Export failed</string>
     <string name="import_error">Import failed — not a valid backup file</string>
     <string name="import_title">Import alarms?</string>
-    <string name="import_confirm">This will replace all current alarms with %1$d alarm(s) from the file.</string>
-    <string name="import_done">%1$d alarm(s) imported</string>
+    <plurals name="import_confirm">
+        <item quantity="one">This will replace all current alarms with %1$d alarm from the file.</item>
+        <item quantity="other">This will replace all current alarms with %1$d alarms from the file.</item>
+    </plurals>
+    <plurals name="import_done">
+        <item quantity="one">%1$d alarm imported</item>
+        <item quantity="other">%1$d alarms imported</item>
+    </plurals>
     <string name="remove_inactive_alarms">Remove inactive alarms</string>
-    <string name="remove_inactive_confirm">Delete %1$d inactive alarm(s)?</string>
-    <string name="remove_inactive_done">%1$d inactive alarm(s) removed</string>
+    <plurals name="remove_inactive_confirm">
+        <item quantity="one">Delete %1$d inactive alarm?</item>
+        <item quantity="other">Delete %1$d inactive alarms?</item>
+    </plurals>
+    <plurals name="remove_inactive_done">
+        <item quantity="one">%1$d inactive alarm removed</item>
+        <item quantity="other">%1$d inactive alarms removed</item>
+    </plurals>
     <string name="no_inactive_alarms">No inactive alarms</string>
 </resources>

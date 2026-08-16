@@ -17,6 +17,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.ServiceCompat
+import androidx.core.net.toUri
 
 class RingtoneService : Service() {
 
@@ -69,7 +70,7 @@ class RingtoneService : Service() {
         if (alarm.ringtone != RINGTONE_SILENT) {
             val uri = alarm.ringtone
                 .takeIf { it.isNotBlank() }
-                ?.let { runCatching { Uri.parse(it) }.getOrNull() }
+                ?.let { runCatching { it.toUri() }.getOrNull() }
                 ?.takeIf { it != Uri.EMPTY }
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 

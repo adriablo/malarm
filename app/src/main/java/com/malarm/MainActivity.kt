@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -174,7 +175,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent(
                     Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                    Uri.parse("package:$packageName"),
+                    "package:$packageName".toUri(),
                 ),
             )
         }.show()
@@ -230,7 +231,7 @@ class MainActivity : AppCompatActivity() {
         db.dialogLabel.setText(initial.label)
         db.dialogDate.text = dateLabel(initial)
         db.dialogRepeat.text = AlarmFormatter.repeat(this, initial)
-        db.dialogRingtone.text = getString(R.string.ringtone) + ": " + ringtoneTitle(initial.ringtone)
+        db.dialogRingtone.text = getString(R.string.ringtone_format, getString(R.string.ringtone), ringtoneTitle(initial.ringtone))
         db.dialogEnabled.isChecked = initial.enabled
         db.dialogDelete.visibility = if (alarm == null) android.view.View.GONE else android.view.View.VISIBLE
 
@@ -337,7 +338,7 @@ class MainActivity : AppCompatActivity() {
             val current = editing ?: return@setOnClickListener
             val uri = current.ringtone
                 .takeIf { it.isNotBlank() && it != RingtoneService.RINGTONE_SILENT }
-                ?.let { Uri.parse(it) }
+                ?.let { it.toUri() }
             val picker = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
                 putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
@@ -413,8 +414,13 @@ class MainActivity : AppCompatActivity() {
         val pad = (16 * resources.displayMetrics.density).toInt()
         val input = com.google.android.material.textfield.TextInputEditText(this).apply {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText((alarm.monthlyDay
-                ?: Calendar.getInstance().get(Calendar.DAY_OF_MONTH)).toString())
+            setText(
+                String.format(
+                    java.util.Locale.getDefault(),
+                    "%d",
+                    alarm.monthlyDay ?: Calendar.getInstance().get(Calendar.DAY_OF_MONTH),
+                ),
+            )
             selectAll()
         }
         val layout = com.google.android.material.textfield.TextInputLayout(this).apply {
@@ -455,19 +461,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dateLabel(alarm: Alarm): String =
-        getString(R.string.date) + ": " + (alarm.dateMillis?.let {
-            java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(it)
-        } ?: getString(R.string.date_none))
+        getString(
+            R.string.date_format,
+            getString(R.string.date),
+            alarm.dateMillis?.let {
+                java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(it)
+            } ?: getString(R.string.date_none),
+        )
 
     private fun ringtoneLabel(): String {
         val current = editing ?: return getString(R.string.ringtone)
-        return getString(R.string.ringtone) + ": " + ringtoneTitle(current.ringtone)
+        return getString(R.string.ringtone_format, getString(R.string.ringtone), ringtoneTitle(current.ringtone))
     }
 
     private fun ringtoneTitle(uriString: String): String {
         if (uriString == RingtoneService.RINGTONE_SILENT) return getString(R.string.silent)
         if (uriString.isBlank()) return getString(R.string.ringtone_default)
-        val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return getString(R.string.ringtone_default)
+        val uri = runCatching { uriString.toUri() }.getOrNull() ?: return getString(R.string.ringtone_default)
         val ringtone: Ringtone? = RingtoneManager.getRingtone(this, uri)
         return ringtone?.getTitle(this) ?: getString(R.string.ringtone_default)
     }

@@ -1,12 +1,12 @@
 package com.malarm
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.malarm.databinding.ActivitySettingsBinding
 
@@ -42,7 +42,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.import_title)
-            .setMessage(getString(R.string.import_confirm, alarms.size))
+            .setMessage(resources.getQuantityString(R.plurals.import_confirm, alarms.size, alarms.size))
             .setPositiveButton(R.string.save) { _, _ -> applyImport(alarms) }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -74,13 +74,13 @@ class SettingsActivity : AppCompatActivity() {
             }
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.remove_inactive_alarms)
-                .setMessage(getString(R.string.remove_inactive_confirm, inactive.size))
+                .setMessage(resources.getQuantityString(R.plurals.remove_inactive_confirm, inactive.size, inactive.size))
                 .setPositiveButton(R.string.delete) { _, _ -> removeInactive(inactive) }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
         binding.githubRow.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_URL)))
+            startActivity(Intent(Intent.ACTION_VIEW, GITHUB_URL.toUri()))
         }
 
         binding.versionValue.text = getString(
@@ -95,14 +95,14 @@ class SettingsActivity : AppCompatActivity() {
         store.all().forEach { scheduler.cancel(it) }
         val imported = store.importAll(alarms)
         imported.filter { it.enabled }.forEach { scheduler.schedule(it) }
-        Toast.makeText(this, getString(R.string.import_done, imported.size), Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, resources.getQuantityString(R.plurals.import_done, imported.size, imported.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun removeInactive(inactive: List<Alarm>) {
         val scheduler = AlarmScheduler(this)
         inactive.forEach { scheduler.cancel(it) }
         store.deleteAll(inactive.map { it.id }.toSet())
-        Toast.makeText(this, getString(R.string.remove_inactive_done, inactive.size), Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, resources.getQuantityString(R.plurals.remove_inactive_done, inactive.size, inactive.size), Toast.LENGTH_SHORT).show()
     }
 
     private fun updateSnoozeValue() {
