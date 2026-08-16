@@ -98,18 +98,24 @@ class AlarmScheduler(private val context: Context) {
                 return cal.timeInMillis.takeIf { it > now.timeInMillis }
             }
             if (alarm.monthlyDay != null) {
+                val day = alarm.monthlyDay
                 val cal = now.clone() as Calendar
+                cal.set(Calendar.DAY_OF_MONTH, 1)
                 cal.set(Calendar.HOUR_OF_DAY, alarm.hour)
                 cal.set(Calendar.MINUTE, alarm.minute)
                 cal.set(Calendar.SECOND, 0)
                 cal.set(Calendar.MILLISECOND, 0)
-                for (i in 0..370) {
-                    if (cal.get(Calendar.DAY_OF_MONTH) == alarm.monthlyDay &&
-                        cal.timeInMillis > now.timeInMillis
-                    ) {
-                        return cal.timeInMillis
+                // Any valid day of month recurs within a year, so checking the
+                // current month plus twelve more is sufficient.
+                for (i in 0..12) {
+                    if (day in 1..cal.getActualMaximum(Calendar.DAY_OF_MONTH)) {
+                        val candidate = cal.clone() as Calendar
+                        candidate.set(Calendar.DAY_OF_MONTH, day)
+                        if (candidate.timeInMillis > now.timeInMillis) {
+                            return candidate.timeInMillis
+                        }
                     }
-                    cal.add(Calendar.DAY_OF_YEAR, 1)
+                    cal.add(Calendar.MONTH, 1)
                 }
                 return null
             }
