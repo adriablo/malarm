@@ -76,7 +76,11 @@ class AlarmScheduler(private val context: Context) {
         const val ROLE_ACTION_SNOOZE = 3
         const val ROLE_ACTION_DISMISS = 4
         private const val ROLE_STRIDE = 5
-        private const val REQUEST_RESCHEDULE = 1000
+
+        // App-wide (non-alarm) PendingIntents use negative request codes: alarm
+        // ids are positive so requestCode() yields non-negative values for them,
+        // keeping the two namespaces disjoint even if intents ever match.
+        private const val REQUEST_RESCHEDULE = -1
 
         fun requestCode(alarmId: Long, role: Int): Int {
             val hash = (alarmId xor (alarmId ushr 32)).toInt()

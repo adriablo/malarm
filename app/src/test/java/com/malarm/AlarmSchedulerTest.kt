@@ -178,4 +178,25 @@ class AlarmSchedulerTest {
         }
         assertTrue(codes.size >= 51 * roles.size)
     }
+
+    @Test
+    fun alarmRequestCodesAreNonNegative() {
+        val roles = intArrayOf(
+            AlarmScheduler.ROLE_MAIN,
+            AlarmScheduler.ROLE_SNOOZE,
+            AlarmScheduler.ROLE_FULL_SCREEN,
+            AlarmScheduler.ROLE_ACTION_SNOOZE,
+            AlarmScheduler.ROLE_ACTION_DISMISS,
+        )
+        // Alarm ids are positive, so their request codes must never enter the
+        // negative namespace reserved for app-wide PendingIntents.
+        for (id in 0L..1_000_000L) {
+            for (role in roles) {
+                assertTrue(
+                    "alarm $id role $role produced a negative request code",
+                    AlarmScheduler.requestCode(id, role) >= 0,
+                )
+            }
+        }
+    }
 }
