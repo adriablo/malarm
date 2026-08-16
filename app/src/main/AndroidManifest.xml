@@ -33,6 +33,7 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:showWhenLocked="true"
+            android:taskAffinity=""
             android:turnScreenOn="true" />
 
         <activity
@@ -42,6 +43,14 @@
         <activity
             android:name=".EventLogActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".SnoozePickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Material3.DayNight.Dialog" />
 
         <receiver
             android:name=".AlarmReceiver"

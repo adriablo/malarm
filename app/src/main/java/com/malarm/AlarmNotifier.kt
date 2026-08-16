@@ -38,6 +38,14 @@ object AlarmNotifier {
                 .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val custom = PendingIntent.getActivity(
+            context,
+            // Reuse the full-screen slot: PendingIntent identity includes the
+            // target component, so this is distinct from the AlarmActivity one.
+            AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_FULL_SCREEN),
+            SnoozePickerActivity.intent(context, alarm.id),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         val dismiss = PendingIntent.getBroadcast(
             context,
             AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_DISMISS),
@@ -59,6 +67,7 @@ object AlarmNotifier {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setFullScreenIntent(fullScreen, true)
             .addAction(0, context.getString(R.string.snooze), snooze)
+            .addAction(0, context.getString(R.string.custom), custom)
             .addAction(0, context.getString(R.string.dismiss), dismiss)
             .build()
     }
@@ -66,5 +75,10 @@ object AlarmNotifier {
     fun cancel(context: Context) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.cancel(NOTIFICATION_ID)
+    }
+
+    fun stopRinging(context: Context) {
+        context.stopService(Intent(context, RingtoneService::class.java))
+        cancel(context)
     }
 }

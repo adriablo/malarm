@@ -20,6 +20,16 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
+    private fun handleSnooze(context: Context, intent: Intent) {
+        val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
+        if (id < 0) return
+        val store = AlarmStore(context)
+        val alarm = store.get(id) ?: return
+        AlarmScheduler(context).scheduleSnooze(alarm, store.snoozeMinutes() * 60_000L)
+        EventLog.log(context, EventType.SNOOZED, id, alarm.label, "${store.snoozeMinutes()} min")
+        AlarmNotifier.stopRinging(context)
+    }
+
     private fun handleRescheduleAll(context: Context) {
         EventLog.log(context, EventType.RESCHEDULE_ALL)
         val store = AlarmStore(context)
@@ -44,16 +54,6 @@ class AlarmReceiver : BroadcastReceiver() {
             nowElapsed = SystemClock.elapsedRealtime(),
             nowWall = System.currentTimeMillis(),
         )
-    }
-
-    private fun handleSnooze(context: Context, intent: Intent) {
-        val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
-        if (id < 0) return
-        val store = AlarmStore(context)
-        val alarm = store.get(id) ?: return
-        AlarmScheduler(context).scheduleSnooze(alarm, store.snoozeMinutes() * 60_000L)
-        EventLog.log(context, EventType.SNOOZED, id, alarm.label)
-        stopRinging(context)
     }
 
     private fun handleDismiss(context: Context) {

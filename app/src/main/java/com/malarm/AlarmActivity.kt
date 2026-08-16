@@ -55,6 +55,10 @@ class AlarmActivity : AppCompatActivity() {
             snooze()
             finish()
         }
+        binding.custom.setOnClickListener {
+            startActivity(SnoozePickerActivity.intent(this, alarm!!.id))
+            finish()
+        }
         binding.dismiss.setOnClickListener {
             dismiss()
             finish()
@@ -65,9 +69,11 @@ class AlarmActivity : AppCompatActivity() {
 
     private fun snooze() {
         val alarm = alarm ?: return
-        val minutes = AlarmStore(this).snoozeMinutes()
-        AlarmScheduler(this).scheduleSnooze(alarm, minutes * 60_000L)
-        stopRinging()
+        sendBroadcast(
+            Intent(this, AlarmReceiver::class.java)
+                .setAction(AlarmScheduler.ACTION_SNOOZE)
+                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
+        )
     }
 
     private fun dismiss() {

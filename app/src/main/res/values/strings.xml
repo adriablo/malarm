@@ -5,6 +5,7 @@
     <string name="delete">Delete</string>
     <string name="dismiss">Dismiss</string>
     <string name="snooze">Snooze</string>
+    <string name="custom">Custom</string>
     <string name="repeat">Repeat</string>
     <string name="date">Date</string>
     <string name="date_format">%1$s: %2$s</string>
@@ -32,6 +33,7 @@
     <string name="days_hours">%1$d d %2$d h</string>
     <string name="hours_minutes">%1$d h %2$d min</string>
     <string name="minutes_only">%1$d min</string>
+    <string name="hours_only">%1$d h</string>
     <string name="ringtone_default">Default</string>
     <string name="silent">Silent</string>
     <string name="notifications_permission_denied">Notifications are disabled. Alarms may not ring on time.</string>
