@@ -49,7 +49,7 @@ object AlarmNotifier {
             .setSmallIcon(R.drawable.ic_alarm_small)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(
-                if (alarm.label.isBlank()) AlarmFormatter.time(context, alarm) else alarm.label,
+                if (alarm.label.isBlank()) AlarmFormatter.time(alarm) else alarm.label,
             )
             .setContentIntent(fullScreen)
             .setCategory(NotificationCompat.CATEGORY_ALARM)

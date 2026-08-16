@@ -38,7 +38,7 @@ class AlarmAdapter(
         fun bind(alarm: Alarm) {
             val context = binding.root.context
             binding.enabled.setOnCheckedChangeListener(null)
-            binding.time.text = AlarmFormatter.time(context, alarm)
+            binding.time.text = AlarmFormatter.time(alarm)
             binding.label.text = alarm.label.ifBlank { context.getString(R.string.app_name) }
             binding.repeat.text = AlarmFormatter.repeat(context, alarm)
             binding.enabled.isChecked = alarm.enabled

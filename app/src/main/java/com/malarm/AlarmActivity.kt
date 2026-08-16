@@ -33,7 +33,7 @@ class AlarmActivity : AppCompatActivity() {
         }
 
         binding.label.text = alarm!!.label.ifBlank { getString(R.string.app_name) }
-        binding.time.text = AlarmFormatter.time(this, alarm!!)
+        binding.time.text = AlarmFormatter.time(alarm!!)
         binding.repeat.text = AlarmFormatter.repeat(this, alarm!!)
 
         binding.snooze.setOnClickListener {

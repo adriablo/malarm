@@ -233,7 +233,7 @@ class MainActivity : AppCompatActivity() {
         val db = DialogAlarmBinding.inflate(layoutInflater)
         dialogBinding = db
 
-        db.dialogTime.text = AlarmFormatter.time(this, initial)
+        db.dialogTime.text = AlarmFormatter.time(initial)
         db.dialogLabel.setText(initial.label)
         db.dialogDate.text = dateLabel(initial)
         db.dialogRepeat.text = AlarmFormatter.repeat(this, initial)
@@ -247,7 +247,7 @@ class MainActivity : AppCompatActivity() {
                 this,
                 { _, hour, minute ->
                     editing = current.copy(hour = hour, minute = minute)
-                    db.dialogTime.text = AlarmFormatter.time(this, editing!!)
+                    db.dialogTime.text = AlarmFormatter.time(editing!!)
                 },
                 current.hour,
                 current.minute,

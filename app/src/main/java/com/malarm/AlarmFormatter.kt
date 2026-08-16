@@ -22,7 +22,7 @@ object AlarmFormatter {
             return DAY_NAMES.map { symbols.shortWeekdays[it] }.toTypedArray()
         }
 
-    fun time(context: Context, alarm: Alarm): String {
+    fun time(alarm: Alarm): String {
         val cal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, alarm.hour)
             set(Calendar.MINUTE, alarm.minute)
