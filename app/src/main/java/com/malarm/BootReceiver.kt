@@ -19,6 +19,6 @@ class BootReceiver : BroadcastReceiver() {
             scheduler.cancel(alarm)
             if (alarm.enabled) scheduler.schedule(alarm)
         }
-        scheduler.scheduleDailyReschedule()
+        scheduler.schedulePeriodicReschedule()
     }
 }

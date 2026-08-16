@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 scheduler.cancel(alarm)
                 if (alarm.enabled) scheduler.schedule(alarm)
             }
-            scheduler.scheduleDailyReschedule()
+            scheduler.schedulePeriodicReschedule()
         }
     }
 
@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                 addAction(Intent.ACTION_TIMEZONE_CHANGED)
             },
         )
-        scheduler.scheduleDailyReschedule()
+        scheduler.schedulePeriodicReschedule()
     }
 
     override fun onDestroy() {

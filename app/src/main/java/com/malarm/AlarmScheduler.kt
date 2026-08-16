@@ -33,24 +33,13 @@ class AlarmScheduler(private val context: Context) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
     }
 
-    fun scheduleDailyReschedule() {
-        val cal = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
+    fun schedulePeriodicReschedule() {
         alarmManager.setInexactRepeating(
             AlarmManager.RTC,
-            cal.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
+            System.currentTimeMillis() + 4 * AlarmManager.INTERVAL_HOUR,
+            4 * AlarmManager.INTERVAL_HOUR,
             rescheduleAllPendingIntent(),
         )
-    }
-
-    fun cancelDailyReschedule() {
-        alarmManager.cancel(rescheduleAllPendingIntent())
     }
 
     private fun setExact(triggerAtMillis: Long, pi: PendingIntent) {
@@ -87,7 +76,7 @@ class AlarmScheduler(private val context: Context) {
         const val ROLE_ACTION_SNOOZE = 3
         const val ROLE_ACTION_DISMISS = 4
         private const val ROLE_STRIDE = 5
-        private const val REQUEST_DAILY_RESCHEDULE = 1000
+        private const val REQUEST_RESCHEDULE = 1000
 
         fun requestCode(alarmId: Long, role: Int): Int {
             val hash = (alarmId xor (alarmId ushr 32)).toInt()
@@ -159,7 +148,7 @@ class AlarmScheduler(private val context: Context) {
         }
         return PendingIntent.getBroadcast(
             context,
-            REQUEST_DAILY_RESCHEDULE,
+            REQUEST_RESCHEDULE,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
