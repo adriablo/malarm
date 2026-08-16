@@ -1,0 +1,3 @@
+New in 0.5.1:
+- Alarms now re-schedule to the correct local time when the time or timezone changes
+- App now requires Android 8.0 or newer (drops Android 7.x)
