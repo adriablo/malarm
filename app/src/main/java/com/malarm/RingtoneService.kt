@@ -100,12 +100,7 @@ class RingtoneService : Service() {
             getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
         val pattern = longArrayOf(0, 500, 500, 500, 500)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(pattern, 0)
-        }
+        vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
     }
 
     private fun stopRinging() {
