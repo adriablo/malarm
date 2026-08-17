@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -21,6 +23,19 @@ class EventLogActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
+
+        // Keep the Export/Clear buttons clear of the system navigation bar.
+        val baseBottom = binding.buttonRow.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.buttonRow) { view, insets ->
+            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                baseBottom + bottomInset,
+            )
+            insets
+        }
 
         adapter = EventLogAdapter(emptyList())
         binding.recycler.layoutManager = LinearLayoutManager(this)
