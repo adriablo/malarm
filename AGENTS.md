@@ -19,12 +19,19 @@ must never break the F-Droid build/update pipeline.
    the app's name, summary, description, screenshots, and changelogs on F-Droid.
 5. If the build recipe changes (AGP/Gradle/compileSdk/minSdk versions), a new
    `fdroid/fdroiddata` MR is required; everything else updates automatically
-   from GitHub tags.
+   from GitHub tags. `targetSdk` changes do **not** require a new MR (F-Droid
+   builds from the tag), but should be tested on the emulator first.
 
 ## Workflow
 
+- Run `./gradlew test lint` before proposing or committing any code change.
+- Work on a `release/X.Y.Z` branch off `main`; merge to `main` (fast-forward)
+  before tagging.
 - Publish a new release: bump versionName/versionCode, tag `vX.Y.Z`, push tag.
   F-Droid picks it up automatically (~24-48h).
+- Each release needs a matching
+  `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` alongside the
+  version bump.
 - Attach the **debug-signed APK** (`app/build/outputs/apk/debug/malarm.apk`) to
   the GitHub release as the `malarm.apk` asset. The release APK is unsigned and
   cannot be installed directly, so the debug APK is the installable build users
@@ -34,3 +41,17 @@ must never break the F-Droid build/update pipeline.
 - Never commit or push to any repository (GitHub, GitLab, or otherwise)
   without explicit user approval. Show proposed changes and wait for a
   go-ahead first.
+
+## Manual QA (on-demand only)
+
+`docs/manual-tests.md` contains the emulator test checklist. It is **not** part
+of normal development: do not read or execute it during routine tasks. Consult
+it only when the user explicitly asks for manual/emulator testing, verification
+of on-device behavior, or a full QA pass, and follow it against a real emulator.
+
+## Docs (consult when relevant)
+
+- `docs/design-notes.md` — platform constraints and deliberate design decisions
+  (alarm presentation, lock-state detection, snooze, re-anchoring). Read before
+  changing scheduling or alarm-UI code.
+- `docs/testing-notes.md` — Robolectric gotchas and emulator/adb techniques.
