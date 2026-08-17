@@ -121,7 +121,7 @@ class AlarmReceiverTest {
             action = AlarmScheduler.ACTION_DISMISS
             putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
         })
-        val event = runBlocking { EventLog.getAll(context) }.first { it.type == EventType.DISMISSED }
+        val event = awaitEvent { it.type == EventType.DISMISSED }
         assertEquals(1L, event.alarmId)
         assertEquals("Morning", event.label)
     }
@@ -132,8 +132,19 @@ class AlarmReceiverTest {
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_DISMISS
         })
-        val event = runBlocking { EventLog.getAll(context) }.first { it.type == EventType.DISMISSED }
+        val event = awaitEvent { it.type == EventType.DISMISSED }
         assertNull(event.alarmId)
+    }
+
+    // EventLog writes asynchronously on Dispatchers.IO; poll until the event
+    // lands (bounded) instead of reading the DB immediately.
+    private fun awaitEvent(predicate: (AlarmEvent) -> Boolean): AlarmEvent {
+        repeat(50) {
+            val events = runBlocking { EventLog.getAll(context) }
+            events.firstOrNull(predicate)?.let { return it }
+            Thread.sleep(20)
+        }
+        throw AssertionError("event never appeared in the log")
     }
 
     @Test

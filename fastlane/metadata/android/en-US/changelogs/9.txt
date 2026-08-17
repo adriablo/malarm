@@ -1,0 +1,4 @@
+New in 0.5.4:
+- Event log improvements: dismiss events now record which alarm, snooze/schedule events are de-duplicated, and cancellations during boot, timezone changes, and periodic checks are tagged with their reason
+- Periodic-check logging now runs at fire time, so the event log reflects actual 4-hourly checks instead of app-open noise
+- Added automated tests for the snooze picker, time-until countdown, boot rescheduling, and dismiss logging
