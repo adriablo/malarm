@@ -31,12 +31,15 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleRescheduleAll(context: Context) {
-        EventLog.log(context, EventType.RESCHEDULE_ALL)
         val store = AlarmStore(context)
         val current = TimeZone.getDefault().id
         val timezoneChanged = current != store.timeZoneId()
         val clockJumped = clockJumped(store)
-        if (!timezoneChanged && !clockJumped) return
+        if (!timezoneChanged && !clockJumped) {
+            EventLog.log(context, EventType.PERIODIC_CHECK, details = "No change")
+            return
+        }
+        EventLog.log(context, EventType.PERIODIC_CHECK, details = "Rescheduling")
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {
             scheduler.cancel(alarm)

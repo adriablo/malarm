@@ -40,7 +40,6 @@ class AlarmScheduler(private val context: Context) {
             4 * AlarmManager.INTERVAL_HOUR,
             rescheduleAllPendingIntent(),
         )
-        EventLog.log(context, EventType.PERIODIC_CHECK)
     }
 
     private fun setExact(triggerAtMillis: Long, pi: PendingIntent) {
