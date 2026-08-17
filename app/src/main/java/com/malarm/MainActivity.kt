@@ -484,8 +484,10 @@ class MainActivity : AppCompatActivity() {
         adapter.submit(store.all())
     }
 
-    private fun timeUntil(triggerMillis: Long): String {
-        val totalMinutes = ((triggerMillis - System.currentTimeMillis()) / 60_000L).coerceAtLeast(1)
+    internal fun timeUntil(triggerMillis: Long): String =
+        formatTimeUntil(((triggerMillis - System.currentTimeMillis()) / 60_000L).coerceAtLeast(1))
+
+    internal fun formatTimeUntil(totalMinutes: Long): String {
         val weeks = totalMinutes / (7 * 24 * 60)
         val days = (totalMinutes % (7 * 24 * 60)) / (24 * 60)
         val hours = (totalMinutes % (24 * 60)) / 60

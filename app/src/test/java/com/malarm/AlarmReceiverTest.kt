@@ -8,10 +8,12 @@ import android.os.Looper
 import android.os.SystemClock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlinx.coroutines.runBlocking
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
@@ -30,6 +32,11 @@ class AlarmReceiverTest {
     fun setUp() {
         context = RuntimeEnvironment.getApplication()
         store = AlarmStore(context)
+        // Clear shared state so tests are independent.
+        runBlocking { EventLog.clear(context) }
+        context.getSharedPreferences("malarm", Context.MODE_PRIVATE).edit().clear().commit()
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        shadowOf(alarmManager).scheduledAlarms.forEach { alarmManager.cancel(it.operation!!) }
     }
 
     private fun intentFor(alarmId: Long, snooze: Boolean = false): Intent =
@@ -102,6 +109,38 @@ class AlarmReceiverTest {
         store.save(Alarm(1, 8, 0))
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_DISMISS
+        })
+        assertTrue(scheduledAlarms.isEmpty())
+        assertFalse(channelExists())
+    }
+
+    @Test
+    fun dismissWithAlarmIdLogsTheAlarm() {
+        store.save(Alarm(1, 8, 0, label = "Morning"))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        val event = runBlocking { EventLog.getAll(context) }.first { it.type == EventType.DISMISSED }
+        assertEquals(1L, event.alarmId)
+        assertEquals("Morning", event.label)
+    }
+
+    @Test
+    fun dismissWithoutAlarmIdLogsNullAlarm() {
+        store.save(Alarm(1, 8, 0))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+        })
+        val event = runBlocking { EventLog.getAll(context) }.first { it.type == EventType.DISMISSED }
+        assertNull(event.alarmId)
+    }
+
+    @Test
+    fun dismissWithUnknownAlarmIdStillStopsRinging() {
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 999L)
         })
         assertTrue(scheduledAlarms.isEmpty())
         assertFalse(channelExists())
