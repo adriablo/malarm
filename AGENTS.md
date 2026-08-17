@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Ground rules (never violate)
+
+- **Never commit or push to any repository** (GitHub, GitLab, or otherwise)
+  **without explicit user approval.** Always show the proposed changes and wait
+  for a go-ahead before committing, merging, pushing, or tagging.
+
 ## Repo and distribution contract
 
 This app is published on F-Droid. The GitLab submission side
@@ -38,9 +44,6 @@ must never break the F-Droid build/update pipeline.
   download from GitHub. Do not attach the unsigned release APK (`app/build/
   outputs/apk/release/malarm.apk`) or a separate `malarm-debug.apk` asset.
 - Do not touch the GitLab fork or open new MRs unless the build recipe changes.
-- Never commit or push to any repository (GitHub, GitLab, or otherwise)
-  without explicit user approval. Show proposed changes and wait for a
-  go-ahead first.
 
 ## Manual QA (on-demand only)
 
