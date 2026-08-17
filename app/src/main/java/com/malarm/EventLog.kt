@@ -12,7 +12,8 @@ import java.util.Locale
 enum class EventType {
     SCHEDULED, CANCELLED, FIRED, SNOOZED, DISMISSED,
     ENABLED, DISABLED, DELETED, IMPORTED,
-    BOOT_COMPLETED, TIMEZONE_CHANGED, PERIODIC_CHECK
+    BOOT_COMPLETED, TIMEZONE_CHANGED, PERIODIC_CHECK,
+    UNKNOWN
 }
 
 @Entity(tableName = "event_log")
@@ -27,7 +28,9 @@ data class AlarmEvent(
 
 class Converters {
     @TypeConverter fun fromEventType(value: EventType) = value.name
-    @TypeConverter fun toEventType(value: String) = EventType.valueOf(value)
+    @TypeConverter
+    fun toEventType(value: String): EventType =
+        runCatching { EventType.valueOf(value) }.getOrDefault(EventType.UNKNOWN)
 }
 
 @Dao
