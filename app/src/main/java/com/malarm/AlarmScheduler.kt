@@ -19,10 +19,10 @@ class AlarmScheduler(private val context: Context) {
         EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
     }
 
-    fun cancel(alarm: Alarm) {
+    fun cancel(alarm: Alarm, reason: String? = null) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
-        EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label)
+        EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label, reason)
     }
 
     fun scheduleSnooze(alarm: Alarm, delayMillis: Long) {
@@ -30,7 +30,6 @@ class AlarmScheduler(private val context: Context) {
             System.currentTimeMillis() + delayMillis,
             alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true),
         )
-        EventLog.log(context, EventType.SNOOZED, alarm.id, alarm.label, "Delay: ${delayMillis}ms")
     }
 
     fun schedulePeriodicReschedule() {

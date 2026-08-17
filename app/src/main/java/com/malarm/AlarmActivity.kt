@@ -77,12 +77,12 @@ class AlarmActivity : AppCompatActivity() {
     }
 
     private fun dismiss() {
-        stopRinging()
-    }
-
-    private fun stopRinging() {
-        stopService(Intent(this, RingtoneService::class.java))
-        AlarmNotifier.cancel(this)
+        val alarm = alarm ?: return
+        sendBroadcast(
+            Intent(this, AlarmReceiver::class.java)
+                .setAction(AlarmScheduler.ACTION_DISMISS)
+                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
+        )
     }
 
     companion object {

@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             EventLog.log(context, EventType.TIMEZONE_CHANGED)
             store.all().forEach { alarm ->
-                scheduler.cancel(alarm)
+                scheduler.cancel(alarm, "Time change")
                 if (alarm.enabled) scheduler.schedule(alarm)
             }
             store.setTimeZoneId(TimeZone.getDefault().id)
@@ -465,7 +465,6 @@ class MainActivity : AppCompatActivity() {
             if (trigger != null) {
                 store.save(updated)
                 scheduler.schedule(updated)
-                EventLog.log(this, EventType.SCHEDULED, updated.id, updated.label, "Saved: ${updated.hour}:${updated.minute}")
                 Toast.makeText(
                     this,
                     getString(R.string.will_ring_in, timeUntil(trigger)),

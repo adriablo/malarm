@@ -14,7 +14,7 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             AlarmScheduler.ACTION_SNOOZE -> handleSnooze(context, intent)
-            AlarmScheduler.ACTION_DISMISS -> handleDismiss(context)
+            AlarmScheduler.ACTION_DISMISS -> handleDismiss(context, intent)
             AlarmScheduler.ACTION_ALARM -> handleAlarm(context, intent)
             AlarmScheduler.ACTION_RESCHEDULE_ALL -> handleRescheduleAll(context)
         }
@@ -42,7 +42,7 @@ class AlarmReceiver : BroadcastReceiver() {
         EventLog.log(context, EventType.PERIODIC_CHECK, details = "Rescheduling")
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {
-            scheduler.cancel(alarm)
+            scheduler.cancel(alarm, "Reschedule")
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         store.setTimeZoneId(current)
@@ -59,8 +59,10 @@ class AlarmReceiver : BroadcastReceiver() {
         )
     }
 
-    private fun handleDismiss(context: Context) {
-        EventLog.log(context, EventType.DISMISSED)
+    private fun handleDismiss(context: Context, intent: Intent) {
+        val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
+        val label = if (id >= 0) AlarmStore(context).get(id)?.label else null
+        EventLog.log(context, EventType.DISMISSED, id.takeIf { it >= 0 }, label)
         stopRinging(context)
     }
 

@@ -18,7 +18,7 @@ class BootReceiver : BroadcastReceiver() {
         val store = AlarmStore(context)
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {
-            scheduler.cancel(alarm)
+            scheduler.cancel(alarm, "Boot")
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         scheduler.schedulePeriodicReschedule()

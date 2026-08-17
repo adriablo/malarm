@@ -50,7 +50,8 @@ object AlarmNotifier {
             context,
             AlarmScheduler.requestCode(alarm.id, AlarmScheduler.ROLE_ACTION_DISMISS),
             Intent(context, AlarmReceiver::class.java)
-                .setAction(AlarmScheduler.ACTION_DISMISS),
+                .setAction(AlarmScheduler.ACTION_DISMISS)
+                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Builder(context, CHANNEL_ID)
