@@ -13,10 +13,12 @@ class AlarmScheduler(private val context: Context) {
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun schedule(alarm: Alarm) {
+    fun schedule(alarm: Alarm, log: Boolean = true) {
         val trigger = nextTrigger(alarm) ?: return
         setExact(trigger, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
-        EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
+        if (log) {
+            EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
+        }
     }
 
     fun cancel(alarm: Alarm, reason: String? = null) {

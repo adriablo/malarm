@@ -156,6 +156,11 @@ class MainActivity : AppCompatActivity() {
         )
         store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
         scheduler.schedulePeriodicReschedule()
+        // A force-stop cancels all PendingIntents and nothing re-arms them until
+        // the next reboot, so re-schedule enabled alarms quietly on every start.
+        // schedule() is idempotent (same PendingIntent is overwritten) and skips
+        // expired one-shots via nextTrigger().
+        store.all().filter { it.enabled }.forEach { scheduler.schedule(it, log = false) }
     }
 
     override fun onDestroy() {

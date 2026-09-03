@@ -102,6 +102,26 @@ class MainActivityTest {
     }
 
     @Test
+    fun appStartReschedulesEnabledAlarms() {
+        val app = org.robolectric.RuntimeEnvironment.getApplication()
+        app.getSharedPreferences("malarm", android.content.Context.MODE_PRIVATE).edit().clear().commit()
+        val alarmManager = app.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+        org.robolectric.Shadows.shadowOf(alarmManager).scheduledAlarms.forEach {
+            alarmManager.cancel(it.operation!!)
+        }
+        val store = AlarmStore(app)
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(java.util.Calendar.MONDAY)))
+        store.save(Alarm(2, 9, 0, repeatDays = setOf(java.util.Calendar.TUESDAY), enabled = false))
+
+        Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+
+        val armed = org.robolectric.Shadows.shadowOf(alarmManager).scheduledAlarms.filter {
+            org.robolectric.Shadows.shadowOf(it.operation).savedIntent?.action == AlarmScheduler.ACTION_ALARM
+        }
+        assertEquals(1, armed.size)
+    }
+
+    @Test
     fun timeUntilUnderAnHourShowsMinutes() {
         assertEquals("45 min", format(45))
         assertEquals("5 min", format(5))
