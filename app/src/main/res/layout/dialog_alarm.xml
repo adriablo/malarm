@@ -12,11 +12,27 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp">
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/dialog_label_layout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/label">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialog_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionDone"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dialog_time"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             tools:text="08:00"
             android:textSize="20sp" />
 
@@ -28,22 +44,6 @@
             android:layout_marginTop="16dp"
             android:gravity="start|center_vertical"
             android:text="@string/date" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/dialog_label_layout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="@string/label">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/dialog_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:imeOptions="actionDone"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dialog_repeat"

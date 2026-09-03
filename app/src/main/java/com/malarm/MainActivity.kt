@@ -363,7 +363,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.app_name)
             .setView(db.root)
             .setPositiveButton(R.string.save) { _, _ -> saveDialog() }
             .setNegativeButton(R.string.cancel, null)
