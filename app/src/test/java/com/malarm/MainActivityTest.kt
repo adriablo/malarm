@@ -80,6 +80,28 @@ class MainActivityTest {
     }
 
     @Test
+    fun timeStepButtonsAdjustTimeBeforeSave() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+        val activity = controller.get()
+        val (hour, _) = activity.nextEvenHour(System.currentTimeMillis())
+        val store = AlarmStore(activity)
+
+        activity.findViewById<android.view.View>(R.id.fab).performClick()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        val dialog = org.robolectric.shadows.ShadowDialog.getShownDialogs().lastOrNull()
+        org.junit.Assert.assertNotNull("expected the alarm dialog", dialog)
+
+        dialog!!.findViewById<android.widget.Button>(R.id.dialog_plus15).performClick()
+        dialog.findViewById<android.widget.Button>(R.id.dialog_minus10).performClick()
+        dialog.findViewById<android.widget.Button>(R.id.dialog_save).performClick()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        val saved = store.all().maxByOrNull { it.id }!!
+        assertEquals(hour, saved.hour)
+        assertEquals(5, saved.minute)
+    }
+
+    @Test
     fun timeUntilUnderAnHourShowsMinutes() {
         assertEquals("45 min", format(45))
         assertEquals("5 min", format(5))

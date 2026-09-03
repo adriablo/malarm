@@ -20,6 +20,12 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="once">Once</string>
+    <string name="time_step_m15">-15</string>
+    <string name="time_step_m10">-10</string>
+    <string name="time_step_m5">-5</string>
+    <string name="time_step_p5">+5</string>
+    <string name="time_step_p10">+10</string>
+    <string name="time_step_p15">+15</string>
     <string name="daily">Daily</string>
     <string name="weekdays">Weekdays</string>
     <string name="weekends">Weekends</string>

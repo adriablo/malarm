@@ -265,6 +265,29 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 
+        mapOf(
+            db.dialogMinus15 to -15,
+            db.dialogMinus10 to -10,
+            db.dialogMinus5 to -5,
+            db.dialogPlus5 to 5,
+            db.dialogPlus10 to 10,
+            db.dialogPlus15 to 15,
+        ).forEach { (button, minutes) ->
+            button.setOnClickListener {
+                val current = editing ?: return@setOnClickListener
+                val cal = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, current.hour)
+                    set(Calendar.MINUTE, current.minute)
+                    add(Calendar.MINUTE, minutes)
+                }
+                editing = current.copy(
+                    hour = cal.get(Calendar.HOUR_OF_DAY),
+                    minute = cal.get(Calendar.MINUTE),
+                )
+                db.dialogTime.text = AlarmFormatter.time(editing!!)
+            }
+        }
+
         db.dialogDate.setOnClickListener {
             val current = editing ?: return@setOnClickListener
             val cal = Calendar.getInstance().apply {
