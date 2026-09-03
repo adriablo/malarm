@@ -1,6 +1,7 @@
 package com.malarm
 
 import android.content.Context
+import androidx.annotation.MainThread
 import org.json.JSONObject
 
 class AlarmStore(context: Context) {
@@ -23,12 +24,14 @@ class AlarmStore(context: Context) {
         return runCatching { Alarm.fromJson(alarmJson) }.getOrNull()
     }
 
+    @MainThread
     fun save(alarm: Alarm) {
         val obj = read() ?: JSONObject()
         obj.put(alarm.id.toString(), alarm.toJson())
         persist(obj)
     }
 
+    @MainThread
     fun delete(id: Long) {
         val obj = read() ?: return
         if (obj.remove(id.toString()) != null) {
@@ -36,6 +39,7 @@ class AlarmStore(context: Context) {
         }
     }
 
+    @MainThread
     fun deleteAll(ids: Set<Long>) {
         val obj = read() ?: return
         var changed = false
@@ -49,6 +53,7 @@ class AlarmStore(context: Context) {
         }
     }
 
+    @MainThread
     fun importAll(alarms: List<Alarm>): List<Alarm> {
         val renumbered = alarms.map { it.copy(id = nextId()) }
         val obj = JSONObject()
@@ -57,13 +62,14 @@ class AlarmStore(context: Context) {
         return renumbered
     }
 
+    @MainThread
     fun nextId(): Long {
         var id = prefs.getLong(KEY_NEXT_ID, 1L)
         val used = all().mapTo(mutableSetOf()) { it.id }
         while (id in used) {
             id++
         }
-        prefs.edit().putLong(KEY_NEXT_ID, id + 1).commit()
+        prefs.edit().putLong(KEY_NEXT_ID, id + 1).apply()
         return id
     }
 
@@ -98,7 +104,7 @@ class AlarmStore(context: Context) {
     }
 
     private fun persist(obj: JSONObject) {
-        prefs.edit().putString(KEY_ALARMS, obj.toString()).commit()
+        prefs.edit().putString(KEY_ALARMS, obj.toString()).apply()
     }
 
     companion object {
