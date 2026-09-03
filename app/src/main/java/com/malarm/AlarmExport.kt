@@ -17,6 +17,12 @@ object AlarmExport {
         put("alarms", JSONArray().apply { alarms.forEach { put(it.toJson()) } })
     }
 
+    fun fileName(nowMillis: Long = System.currentTimeMillis()): String {
+        val stamp = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss", java.util.Locale.US)
+            .format(java.util.Date(nowMillis))
+        return "malarm-alarms-$stamp.json"
+    }
+
     fun import(content: String): List<Alarm>? = runCatching {
         val trimmed = content.trim()
         val alarms = if (trimmed.startsWith("[")) {

@@ -43,4 +43,19 @@ class AlarmExportTest {
         assertEquals(BuildConfig.VERSION_NAME, json.getString("appVersion"))
         assertEquals(BuildConfig.VERSION_CODE, json.getInt("appVersionCode"))
     }
+
+    @Test
+    fun fileNameUsesIsoTimestamp() {
+        val original = java.util.TimeZone.getDefault()
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+        try {
+            val millis = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                set(2026, Calendar.SEPTEMBER, 3, 19, 20, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            assertEquals("malarm-alarms-2026-09-03T19-20-00.json", AlarmExport.fileName(millis))
+        } finally {
+            java.util.TimeZone.setDefault(original)
+        }
+    }
 }

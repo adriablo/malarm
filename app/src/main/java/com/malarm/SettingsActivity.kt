@@ -60,7 +60,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.snoozeRow.setOnClickListener { showSnoozeDialog() }
         updateSnoozeValue()
 
-        binding.exportRow.setOnClickListener { exportLauncher.launch("malarm-alarms.json") }
+        binding.exportRow.setOnClickListener { exportLauncher.launch(AlarmExport.fileName()) }
         binding.importRow.setOnClickListener {
             importLauncher.launch(arrayOf("*/*"))
         }
