@@ -61,8 +61,9 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun handleDismiss(context: Context, intent: Intent) {
         val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
-        val label = if (id >= 0) AlarmStore(context).get(id)?.label else null
-        EventLog.log(context, EventType.DISMISSED, id.takeIf { it >= 0 }, label)
+        val alarm = if (id >= 0) AlarmStore(context).get(id) else null
+        if (alarm != null) AlarmScheduler(context).cancel(alarm, "Dismiss")
+        EventLog.log(context, EventType.DISMISSED, id.takeIf { it >= 0 }, alarm?.label)
         stopRinging(context)
     }
 

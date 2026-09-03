@@ -157,6 +157,21 @@ class AlarmReceiverTest {
         assertFalse(channelExists())
     }
 
+    @Test
+    fun dismissCancelsPendingSnooze() {
+        store.save(Alarm(1, 8, 0))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_SNOOZE
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        assertEquals(1, scheduledAlarms.size)
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        assertTrue(scheduledAlarms.isEmpty())
+    }
+
     private fun rescheduleAll() {
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_RESCHEDULE_ALL
