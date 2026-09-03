@@ -123,7 +123,14 @@ class MainActivity : AppCompatActivity() {
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
         binding.fab.setOnClickListener { showAlarmDialog(null) }
-        binding.settings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_settings) {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            } else {
+                false
+            }
+        }
         binding.permissionAllow.setOnClickListener {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
