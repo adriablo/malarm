@@ -82,6 +82,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.githubRow.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, GITHUB_URL.toUri()))
         }
+        binding.fdroidRow.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, FDROID_URL.toUri()))
+        }
 
         binding.eventLogRow.setOnClickListener {
             startActivity(Intent(this, EventLogActivity::class.java))
@@ -137,5 +140,6 @@ class SettingsActivity : AppCompatActivity() {
 
     companion object {
         private const val GITHUB_URL = "https://github.com/adriablo/malarm"
+        private const val FDROID_URL = "https://f-droid.org/packages/com.malarm/"
     }
 }
