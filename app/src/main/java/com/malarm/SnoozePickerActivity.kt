@@ -14,6 +14,8 @@ class SnoozePickerActivity : AppCompatActivity() {
         val alarmId = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
         val alarm = AlarmStore(this).get(alarmId)
         if (alarm == null) {
+            // Nothing left to act on: silence and clear the alert entirely.
+            AlarmNotifier.stopRinging(this)
             finish()
             return
         }
@@ -23,7 +25,13 @@ class SnoozePickerActivity : AppCompatActivity() {
             .setItems(SNOOZE_OPTIONS.map { snoozeLabel(it) }.toTypedArray()) { _, which ->
                 snooze(alarm, SNOOZE_OPTIONS[which])
             }
-            .setOnCancelListener { finish() }
+            .setOnCancelListener {
+                // Backing out of the picker is not a snooze choice: stop the
+                // sound but keep the notification so the alarm can still be
+                // snoozed or dismissed from there.
+                stopService(Intent(this, RingtoneService::class.java))
+                finish()
+            }
             .show()
     }
 

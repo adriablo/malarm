@@ -1,6 +1,7 @@
 package com.malarm
 
 import android.app.AlarmManager
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
@@ -117,5 +118,21 @@ class SnoozePickerActivityTest {
                 .putExtra(AlarmScheduler.EXTRA_ALARM_ID, 999L),
         ).setup()
         assertTrue(controller.get().isFinishing)
+        val stopped = shadowOf(context as Application).nextStoppedService
+        assertEquals(RingtoneService::class.java.name, stopped?.component?.className)
+    }
+
+    @Test
+    fun cancellingPickerStopsSound() {
+        val alarm = Alarm(1, 8, 0)
+        store.save(alarm)
+        val controller = launch(alarm)
+        val dialog = org.robolectric.shadows.ShadowDialog.getShownDialogs().lastOrNull()
+        assertNotNull("expected the snooze dialog", dialog)
+        dialog!!.cancel()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(controller.get().isFinishing)
+        val stopped = shadowOf(context as Application).nextStoppedService
+        assertEquals(RingtoneService::class.java.name, stopped?.component?.className)
     }
 }
