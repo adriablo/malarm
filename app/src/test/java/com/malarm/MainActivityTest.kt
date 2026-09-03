@@ -61,6 +61,25 @@ class MainActivityTest {
     }
 
     @Test
+    fun newAlarmDialogHasTitleAndSavePersistsAlarm() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+        val activity = controller.get()
+        val store = AlarmStore(activity)
+        val before = store.all().size
+
+        activity.findViewById<android.view.View>(R.id.fab).performClick()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        val dialog = org.robolectric.shadows.ShadowDialog.getShownDialogs().lastOrNull()
+        org.junit.Assert.assertNotNull("expected the alarm dialog", dialog)
+        val title = dialog!!.findViewById<android.widget.TextView>(androidx.appcompat.R.id.alertTitle)
+        assertEquals("New alarm", title.text.toString())
+
+        dialog.findViewById<android.widget.Button>(R.id.dialog_save).performClick()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(before + 1, store.all().size)
+    }
+
+    @Test
     fun timeUntilUnderAnHourShowsMinutes() {
         assertEquals("45 min", format(45))
         assertEquals("5 min", format(5))

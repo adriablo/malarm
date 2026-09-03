@@ -372,10 +372,17 @@ class MainActivity : AppCompatActivity() {
             dialog?.dismiss()
         }
 
+        db.dialogSave.setOnClickListener {
+            saveDialog()
+            dialog?.dismiss()
+        }
+        db.dialogCancel.setOnClickListener {
+            dialog?.dismiss()
+        }
+
         dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(if (isNewAlarm) R.string.new_alarm else R.string.edit_alarm)
             .setView(db.root)
-            .setPositiveButton(R.string.save) { _, _ -> saveDialog() }
-            .setNegativeButton(R.string.cancel, null)
             .setOnDismissListener {
                 dialogBinding = null
                 editing = null

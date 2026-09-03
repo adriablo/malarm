@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Malarm</string>
     <string name="add_alarm">Add alarm</string>
+    <string name="new_alarm">New alarm</string>
+    <string name="edit_alarm">Edit alarm</string>
     <string name="delete">Delete</string>
     <string name="dismiss">Dismiss</string>
     <string name="snooze">Snooze</string>
