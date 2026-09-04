@@ -7,7 +7,10 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 ## Setup
 
 - Fresh install: `adb uninstall com.malarm` then install the debug APK.
-- Grant notifications (`POST_NOTIFICATIONS`) and exact-alarm access on first launch.
+- Grant notifications (`POST_NOTIFICATIONS`) and exact-alarm access on first launch
+  (exact alarms are special app access — use the `appops` commands in the quick
+  reference, not `pm grant`).
+- Settings lives behind the gear icon in the top app bar.
 - Note the device timezone and current time before testing.
 
 ---
@@ -23,6 +26,8 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 | 1.5 | Add a monthly alarm (e.g. day 16) | Shows "Monthly on day 16"; trigger = next month 16th |
 | 1.6 | Add a date alarm (future date) | Shows the date; trigger = that date at alarm time |
 | 1.7 | Add a custom-days alarm (pick Mon+Wed) | Shows "Mon, Wed" |
+| 1.8 | Open the dialog for a new alarm | Label field first; time defaults to the next even hour (now+5m rounded up) |
+| 1.9 | Tap the -15/-10/-5/+5/+10/+15 step buttons | Time shifts by that many minutes per tap |
 
 ## 2. Time Edge Cases
 
@@ -61,6 +66,7 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 | 5.3 | Tap full-screen Custom | Picker opens over the lock screen; select → snoozes; returns to previous screen |
 | 5.4 | Tap full-screen Dismiss | Ringing stops; returns to lock screen / previous app |
 | 5.5 | Dismiss while the device has a secure lock (PIN) | Alarm still shows over the lock screen (showWhenLocked) |
+| 5.6 | Press Back on the full-screen alarm | **Snoozes** for the default duration (same as Snooze); must not leave the ringtone orphaned |
 
 ## 6. Snooze Behavior
 
@@ -72,6 +78,8 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 | 6.4 | **Delete the snoozed alarm before it re-fires** | Snooze alarm cancelled; **does not ring** |
 | 6.5 | **Edit (change) the snoozed alarm before it re-fires** | Snooze cancelled; re-scheduled to the new time; does not ring at the old snooze time |
 | 6.6 | Snooze a *disabled* one-shot (via re-fire path) | Snooze still rings (snooze bypasses disabled check) |
+| 6.7 | Open the snooze picker (Custom), then cancel/back out | Ringing **stops**; no snooze is armed |
+| 6.8 | Snooze, then change the wall clock past the snooze time | Snooze still fires ~on schedule (elapsed-based timing, immune to clock jumps) |
 
 ## 7. Timezone / Clock Changes
 
@@ -88,6 +96,7 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 | 8.1 | Reboot with enabled alarms | BOOT_COMPLETED logged; all enabled alarms rescheduled |
 | 8.2 | Reboot with only disabled alarms | Nothing scheduled; no ringing |
 | 8.3 | Reboot; check periodic reschedule is re-armed | `ACTION_RESCHEDULE_ALL` present every 4h cadence |
+| 8.4 | Force-stop the app with enabled alarms, then relaunch | Alarms re-armed quietly on start (no log spam, no toasts); next triggers intact |
 
 ## 9. Settings
 
@@ -95,7 +104,8 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 |---|----------|----------|
 | 9.1 | Remove inactive alarms with an expired/disabled alarm present | Only the inactive one is removed; toast shows count |
 | 9.2 | Remove inactive with none present | "No inactive alarms" toast |
-| 9.3 | Export alarms | System CreateDocument picker opens |
+| 9.3 | Export alarms | System CreateDocument picker opens; default name `malarm-alarms-<ISO-timestamp>.json` |
+| 9.3b | Open Settings via the top-app-bar gear | Settings opens; rows for snooze duration, export/import, remove inactive, GitHub, F-Droid, event log, version |
 | 9.4 | Import a valid backup | Replaces all alarms; toast shows imported count |
 | 9.5 | Import a malformed file | "Import failed" toast; nothing changes |
 | 9.6 | Set snooze duration in Settings | Used as the "Snooze" (default) duration |
@@ -139,6 +149,13 @@ Run these on the emulator (API 35+ recommended) after a **fresh install** (unins
 ```bash
 # Grant permissions (Android 13+ emulator)
 adb shell pm grant com.malarm android.permission.POST_NOTIFICATIONS
+# Exact alarms + full-screen intent are special app access, not runtime permissions:
+adb shell appops set com.malarm SCHEDULE_EXACT_ALARM allow
+adb shell appops set com.malarm USE_FULL_SCREEN_INTENT allow
+
+# Schedule a debug alarm ~1 min out (fresh onCreate only — force-stop first)
+adb shell am force-stop com.malarm
+adb shell am start --ez debug_schedule true -n com.malarm/.MainActivity
 
 # Change timezone
 adb shell cmd alarm set-timezone America/New_York

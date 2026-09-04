@@ -40,9 +40,18 @@ misleading API.
 - Deleting or editing a snoozed alarm **cancels the snooze** (via
   `AlarmScheduler.cancel`, which cancels both the main and snooze
   PendingIntents). A snoozed-then-deleted alarm does not ring.
+- **Back press on the full-screen alarm snoozes** (`AlarmActivity` routes it
+  through `snooze()` + `finish()`). Leaving without an explicit choice must
+  never orphan the ringtone.
+- Snooze timing is based on **`ELAPSED_REALTIME_WAKEUP`** (`setExactElapsed`),
+  so manual clock changes can't shift or swallow a pending snooze.
 
 ## Time / timezone re-anchoring
 
+- A **force-stop cancels all PendingIntents** and nothing re-arms them until
+  the next reboot, so `MainActivity.onCreate` re-schedules enabled alarms
+  quietly on every start (`schedule(..., log = false)`; idempotent, skips
+  expired one-shots via `nextTrigger()`).
 - Timezone changes are detected by the `TimeZone.getDefault().id` guard.
 - Manual clock changes (same timezone) are detected by comparing the wall clock
   against `SystemClock.elapsedRealtime()` (the calibration pair stored in
