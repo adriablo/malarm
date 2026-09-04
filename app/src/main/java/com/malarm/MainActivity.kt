@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
         store = AlarmStore(this)
         scheduler = AlarmScheduler(this)
 
-        adapter = AlarmAdapter(store.all(), object : AlarmAdapter.Listener {
+        adapter = AlarmAdapter(object : AlarmAdapter.Listener {
             override fun onToggle(alarm: Alarm, enabled: Boolean) {
                 val updated = alarm.copy(enabled = enabled)
                 store.save(updated)
