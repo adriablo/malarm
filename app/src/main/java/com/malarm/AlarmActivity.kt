@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -61,6 +62,13 @@ class AlarmActivity : AppCompatActivity() {
         }
         binding.dismiss.setOnClickListener {
             dismiss()
+            finish()
+        }
+
+        // Back must never orphan the ringtone: leaving the screen without an
+        // explicit choice snoozes, like the Snooze button.
+        onBackPressedDispatcher.addCallback(this) {
+            snooze()
             finish()
         }
 
