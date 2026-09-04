@@ -151,10 +151,19 @@ class AlarmSchedulerAndroidTest {
 
     @Test
     fun scheduleSnoozeTriggersAtNowPlusDelay() {
-        val before = System.currentTimeMillis()
+        val before = android.os.SystemClock.elapsedRealtime()
         scheduler.scheduleSnooze(repeating, 60_000L)
-        val after = System.currentTimeMillis()
-        val trigger = alarmManager.scheduledAlarms.single().triggerAtMs
-        assertTrue(trigger >= before + 60_000L && trigger <= after + 60_000L)
+        val after = android.os.SystemClock.elapsedRealtime()
+        val snooze = alarmManager.scheduledAlarms.single()
+        assertEquals(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP, snooze.type)
+        assertTrue(snooze.triggerAtMs >= before + 60_000L && snooze.triggerAtMs <= after + 60_000L)
+    }
+
+    @Test
+    fun snoozeStillArmedWhenExactNotGranted() {
+        ShadowAlarmManager.setCanScheduleExactAlarms(false)
+        scheduler.scheduleSnooze(repeating, 60_000L)
+        val snooze = alarmManager.scheduledAlarms.single()
+        assertEquals(AlarmManager.ELAPSED_REALTIME_WAKEUP, snooze.type)
     }
 }

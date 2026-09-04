@@ -91,13 +91,13 @@ class SnoozePickerActivityTest {
         val alarm = Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY))
         store.save(alarm)
         val controller = launch(alarm)
-        val before = System.currentTimeMillis()
+        val before = android.os.SystemClock.elapsedRealtime()
         // index 4 == "1 h" (60 min)
         select(controller, 4)
-        val after = System.currentTimeMillis()
-        val alarms = scheduledAlarms
-        assertEquals(1, alarms.size)
-        val trigger = alarms[0].triggerAtMs
+        val after = android.os.SystemClock.elapsedRealtime()
+        val snooze = scheduledAlarms.single()
+        assertEquals(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP, snooze.type)
+        val trigger = snooze.triggerAtMs
         assertTrue("snooze trigger ${trigger} outside [${before + 3_600_000L}, ${after + 3_600_000L}]", trigger in (before + 3_600_000L)..(after + 3_600_000L))
     }
 

@@ -28,8 +28,11 @@ class AlarmScheduler(private val context: Context) {
     }
 
     fun scheduleSnooze(alarm: Alarm, delayMillis: Long) {
-        setExact(
-            System.currentTimeMillis() + delayMillis,
+        // Snooze is a duration ("in N minutes"), not a wall-clock time: base it
+        // on elapsed realtime so manual clock sets, timezone travel, NTP steps
+        // and DST transitions during the snooze window cannot shift firing.
+        setExactElapsed(
+            SystemClock.elapsedRealtime() + delayMillis,
             alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true),
         )
     }
@@ -54,6 +57,14 @@ class AlarmScheduler(private val context: Context) {
             AlarmManager.AlarmClockInfo(triggerAtMillis, null),
             pi,
         )
+    }
+
+    private fun setExactElapsed(triggerAtElapsed: Long, pi: PendingIntent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtElapsed, pi)
+            return
+        }
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtElapsed, pi)
     }
 
     fun canScheduleExact(): Boolean =
