@@ -1,0 +1,8 @@
+New in 0.6.1:
+- Full-screen alarm: larger Snooze/Custom/Dismiss buttons, centered on screen
+- New-alarm dialog: label first, -15 to +15 minute step buttons, Save/Cancel at the bottom, sensible default time
+- Top app bar with app name; Settings moved into its menu
+- Exports named malarm-alarms with timestamp; F-Droid link in Settings
+- Reliability: dismissing an alarm cancels its pending snooze; cancelling the snooze picker stops the ringing
+- Alarms recover after a force-stop and re-anchor when the clock or timezone changes
+- Back button on the ringing screen snoozes instead of leaving it ringing; snooze timing survives manual clock changes
