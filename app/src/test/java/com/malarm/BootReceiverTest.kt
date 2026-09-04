@@ -72,4 +72,24 @@ class BootReceiverTest {
         sendBoot()
         assertEquals(2, scheduledAlarms.size)
     }
+
+    private fun sendTimeChanged(action: String) {
+        BootReceiver().onReceive(context, Intent(action))
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun timezoneChangedRearmsEnabledAlarms() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        store.save(Alarm(2, 9, 0, repeatDays = setOf(Calendar.TUESDAY), enabled = false))
+        sendTimeChanged(Intent.ACTION_TIMEZONE_CHANGED)
+        assertEquals(1, scheduledAlarms.size)
+    }
+
+    @Test
+    fun timeSetRearmsEnabledAlarms() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        sendTimeChanged(Intent.ACTION_TIME_CHANGED)
+        assertEquals(1, scheduledAlarms.size)
+    }
 }
