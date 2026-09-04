@@ -396,6 +396,7 @@ class MainActivity : AppCompatActivity() {
             val current = editing ?: return@setOnClickListener
             scheduler.cancel(current)
             store.delete(current.id)
+            EventLog.log(this, EventType.DELETED, current.id, current.label)
             adapter.submit(store.all())
             dialog?.dismiss()
         }
