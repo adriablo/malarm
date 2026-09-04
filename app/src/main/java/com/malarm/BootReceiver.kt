@@ -24,7 +24,16 @@ class BootReceiver : BroadcastReceiver() {
             else -> "Boot"
         }
         for (alarm in store.all()) {
-            scheduler.cancel(alarm, reason)
+            if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
+                intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
+            ) {
+                // Boot wipes AlarmManager (and the elapsed clock resets), so drop everything.
+                scheduler.cancel(alarm, reason)
+            } else {
+                // Clock jump: re-anchor wall-clock mains only; an active snooze is
+                // elapsed-based and survives untouched (§6.8).
+                scheduler.cancelMain(alarm, reason)
+            }
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         scheduler.schedulePeriodicReschedule()

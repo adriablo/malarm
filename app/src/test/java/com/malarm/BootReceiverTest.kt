@@ -43,6 +43,15 @@ class BootReceiverTest {
             shadowOf(it.operation).savedIntent?.action == AlarmScheduler.ACTION_ALARM
         }
 
+    private val snoozeAlarms
+        get() = shadowOf(
+            context.getSystemService(Context.ALARM_SERVICE) as AlarmManager,
+        ).scheduledAlarms.filter {
+            val intent = shadowOf(it.operation).savedIntent
+            intent?.action == AlarmScheduler.ACTION_ALARM &&
+                intent.getBooleanExtra(AlarmScheduler.EXTRA_IS_SNOOZE, false)
+        }
+
     @Test
     fun ignoresNonBootActions() {
         store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
@@ -91,5 +100,16 @@ class BootReceiverTest {
         store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
         sendTimeChanged(Intent.ACTION_TIME_CHANGED)
         assertEquals(1, scheduledAlarms.size)
+    }
+
+    @Test
+    fun timeChangePreservesSnooze_bootCancelsIt() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        AlarmScheduler(context).scheduleSnooze(store.all().first(), 5 * 60_000L)
+        assertEquals(1, snoozeAlarms.size)
+        sendTimeChanged(Intent.ACTION_TIME_CHANGED)
+        assertEquals(1, snoozeAlarms.size)
+        sendBoot()
+        assertTrue(snoozeAlarms.isEmpty())
     }
 }

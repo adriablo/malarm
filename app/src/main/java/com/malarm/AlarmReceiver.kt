@@ -42,7 +42,7 @@ class AlarmReceiver : BroadcastReceiver() {
         EventLog.log(context, EventType.PERIODIC_CHECK, details = "Rescheduling")
         val scheduler = AlarmScheduler(context)
         for (alarm in store.all()) {
-            scheduler.cancel(alarm, "Reschedule")
+            scheduler.cancelMain(alarm, "Reschedule")
             if (alarm.enabled) scheduler.schedule(alarm)
         }
         store.setTimeZoneId(current)

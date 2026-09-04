@@ -22,8 +22,15 @@ class AlarmScheduler(private val context: Context) {
     }
 
     fun cancel(alarm: Alarm, reason: String? = null) {
-        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        cancelMain(alarm, reason)
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_SNOOZE, isSnooze = true))
+    }
+
+    /** Cancel only the wall-clock main alarm, leaving an active elapsed-based
+     * snooze untouched (snooze is immune to clock jumps). Used for
+     * TIME_SET / TIMEZONE_CHANGED re-anchoring; boot still cancels both. */
+    fun cancelMain(alarm: Alarm, reason: String? = null) {
+        alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
         EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label, reason)
     }
 
