@@ -136,6 +136,43 @@ class MainActivityTest {
     }
 
     @Test
+    fun timeChangePreservesSnoozeInForeground() {
+        // Code-review §1.1: the foreground TIME_CHANGED receiver must use
+        // cancelMain so an active elapsed-based snooze survives, matching
+        // BootReceiver / AlarmReceiver.
+        val app = org.robolectric.RuntimeEnvironment.getApplication()
+        app.getSharedPreferences("malarm", android.content.Context.MODE_PRIVATE).edit().clear().commit()
+        kotlinx.coroutines.runBlocking { EventLog.clear(app) }
+        val alarmManager = app.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+        org.robolectric.Shadows.shadowOf(alarmManager).scheduledAlarms.toList().forEach {
+            alarmManager.cancel(it.operation!!)
+        }
+        val store = AlarmStore(app)
+        val alarm = Alarm(1, 8, 0, repeatDays = setOf(java.util.Calendar.MONDAY))
+        store.save(alarm)
+        val scheduler = AlarmScheduler(app)
+        scheduler.schedule(alarm)
+        scheduler.scheduleSnooze(alarm, 5 * 60_000L)
+
+        val controller = Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+        controller.get().sendBroadcast(Intent(Intent.ACTION_TIME_CHANGED))
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        val snoozes = org.robolectric.Shadows.shadowOf(alarmManager).scheduledAlarms.filter {
+            val saved = org.robolectric.Shadows.shadowOf(it.operation).savedIntent
+            saved?.action == AlarmScheduler.ACTION_ALARM &&
+                saved.getBooleanExtra(AlarmScheduler.EXTRA_IS_SNOOZE, false)
+        }
+        assertEquals(1, snoozes.size)
+        val mains = org.robolectric.Shadows.shadowOf(alarmManager).scheduledAlarms.filter {
+            val saved = org.robolectric.Shadows.shadowOf(it.operation).savedIntent
+            saved?.action == AlarmScheduler.ACTION_ALARM &&
+                !saved.getBooleanExtra(AlarmScheduler.EXTRA_IS_SNOOZE, false)
+        }
+        assertEquals(1, mains.size)
+    }
+
+    @Test
     fun timeUntilUnderAnHourShowsMinutes() {
         assertEquals("45 min", format(45))
         assertEquals("5 min", format(5))

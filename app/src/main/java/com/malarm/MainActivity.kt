@@ -41,7 +41,10 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             EventLog.log(context, EventType.TIMEZONE_CHANGED)
             store.all().forEach { alarm ->
-                scheduler.cancel(alarm, "Time change")
+                // Re-anchor wall-clock mains only: an active snooze is
+                // elapsed-based and survives clock jumps untouched,
+                // matching BootReceiver and AlarmReceiver.
+                scheduler.cancelMain(alarm, "Time change")
                 if (alarm.enabled) scheduler.schedule(alarm)
             }
             store.setTimeZoneId(TimeZone.getDefault().id)
