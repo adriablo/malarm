@@ -122,6 +122,20 @@ class MainActivityTest {
     }
 
     @Test
+    fun appStartDisablesExpiredDateAlarm() {
+        // Manual 2.2 (past date auto-disabled) via the MainActivity start path:
+        // same isExpiredDateAlarm rule as the save dialog and BootReceiver.
+        val app = org.robolectric.RuntimeEnvironment.getApplication()
+        app.getSharedPreferences("malarm", android.content.Context.MODE_PRIVATE).edit().clear().commit()
+        val yesterday = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+        AlarmStore(app).save(Alarm(1, 8, 0, dateMillis = yesterday))
+
+        Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+
+        org.junit.Assert.assertFalse(AlarmStore(app).get(1)!!.enabled)
+    }
+
+    @Test
     fun timeUntilUnderAnHourShowsMinutes() {
         assertEquals("45 min", format(45))
         assertEquals("5 min", format(5))

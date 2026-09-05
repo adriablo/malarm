@@ -82,6 +82,49 @@ class AlarmSchedulerAndroidTest {
     }
 
     @Test
+    fun cancelCancelsPendingSnooze() {
+        // Manual 6.4 (delete snoozed alarm): both main and snooze must go.
+        scheduler.schedule(repeating)
+        scheduler.scheduleSnooze(repeating, 60_000L)
+        assertEquals(2, alarmManager.scheduledAlarms.size)
+        scheduler.cancel(repeating)
+        assertTrue(alarmManager.scheduledAlarms.isEmpty())
+    }
+
+    @Test
+    fun editCancelsSnoozeAndReschedulesToNewTime() {
+        // Manual 6.5 (edit snoozed alarm): old snooze is dropped, main re-arms
+        // at the new time.
+        scheduler.schedule(repeating)
+        scheduler.scheduleSnooze(repeating, 60_000L)
+        val updated = repeating.copy(hour = 10, minute = 30)
+        scheduler.cancel(repeating)
+        scheduler.schedule(updated)
+        val remaining = alarmManager.scheduledAlarms
+        assertEquals(1, remaining.size)
+        assertEquals(
+            AlarmScheduler.requestCode(updated.id, AlarmScheduler.ROLE_MAIN),
+            shadowOf(remaining.single().operation).requestCode,
+        )
+        assertEquals(scheduler.nextTrigger(updated), remaining.single().triggerAtMs)
+    }
+
+    @Test
+    fun editFlowPersistsAndReschedules() {
+        // Manual 3.3 (edit time/repeat): store update + cancel + re-schedule.
+        val store = AlarmStore(context)
+        store.save(repeating)
+        val updated = repeating.copy(hour = 10, minute = 30)
+        store.save(updated)
+        scheduler.cancel(repeating)
+        scheduler.schedule(updated)
+        assertEquals(updated, store.get(repeating.id))
+        val remaining = alarmManager.scheduledAlarms
+        assertEquals(1, remaining.size)
+        assertEquals(scheduler.nextTrigger(updated), remaining.single().triggerAtMs)
+    }
+
+    @Test
     @Suppress("DEPRECATION")
     fun scheduleSnoozeUsesSnoozeRequestCode() {
         scheduler.scheduleSnooze(repeating, 60_000L)

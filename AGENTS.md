@@ -47,10 +47,12 @@ must never break the F-Droid build/update pipeline.
 
 ## Manual QA (on-demand only)
 
-`docs/manual-tests.md` contains the emulator test checklist. It is **not** part
-of normal development: do not read or execute it during routine tasks. Consult
-it only when the user explicitly asks for manual/emulator testing, verification
-of on-device behavior, or a full QA pass, and follow it against a real emulator.
+`docs/manual-tests-smoke.md` (per-commit, ~7–10 min) and
+`docs/manual-tests-release.md` (per-release delta; run smoke first) contain the
+emulator checklists; `docs/manual-tests.md` is just the index. They are **not**
+part of normal development: do not read or execute them during routine tasks. Consult
+them only when the user explicitly asks for manual/emulator testing, verification
+of on-device behavior, or a full QA pass, and follow them against a real emulator.
 
 ## Docs (consult when relevant)
 

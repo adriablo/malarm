@@ -42,5 +42,7 @@ Agent-facing notes for automated (Robolectric) and emulator testing.
 
 ## Manual QA
 
-The emulator test checklist lives in `docs/manual-tests.md`. It is **on-demand
-only** — do not read or execute it during routine development.
+The emulator checklists are `docs/manual-tests-smoke.md` (per-commit, ~7–10 min)
+and `docs/manual-tests-release.md` (per-release delta; run smoke first).
+`docs/manual-tests.md` is just the index. They are **on-demand
+only** — do not read or execute them during routine development.

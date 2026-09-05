@@ -15,7 +15,16 @@ class AlarmScheduler(private val context: Context) {
 
     fun schedule(alarm: Alarm, log: Boolean = true) {
         val trigger = nextTrigger(alarm) ?: return
-        setExact(trigger, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        scheduleAt(alarm, trigger, log)
+    }
+
+    /** Schedule at an exact wall-clock time, bypassing [nextTrigger].
+     * Debug-only entry point for sub-minute test delays: the alarm model has
+     * minute precision, so [nextTrigger] truncates to second 0 and anything
+     * under a minute would roll to tomorrow. Production paths must use
+     * [schedule]. */
+    fun scheduleAt(alarm: Alarm, triggerAtMillis: Long, log: Boolean = true) {
+        setExact(triggerAtMillis, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
         if (log) {
             EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
         }

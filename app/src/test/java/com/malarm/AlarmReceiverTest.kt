@@ -194,6 +194,62 @@ class AlarmReceiverTest {
         assertTrue(scheduledAlarms.isEmpty())
     }
 
+    @Test
+    fun snoozeUsesConfiguredDuration() {
+        // Manual 9.6: Settings snooze duration drives the ACTION_SNOOZE delay.
+        store.save(Alarm(1, 8, 0, label = "Morning"))
+        store.setSnoozeMinutes(15)
+        val before = SystemClock.elapsedRealtime()
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_SNOOZE
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        val after = SystemClock.elapsedRealtime()
+        val snooze = scheduledAlarms.single()
+        assertEquals(AlarmManager.ELAPSED_REALTIME_WAKEUP, snooze.type)
+        assertTrue(
+            "snooze trigger ${snooze.triggerAtMs} outside 15-min window",
+            snooze.triggerAtMs in before + 15 * 60_000L..after + 15 * 60_000L,
+        )
+        val event = awaitEvent { it.type == EventType.SNOOZED }
+        assertEquals(1L, event.alarmId)
+        assertEquals("Morning", event.label)
+        assertEquals("15 min", event.details)
+    }
+
+    @Test
+    fun fireSnoozeDismissLogsFullCycle() {
+        // Manual 10.1: FIRED, SNOOZED (minutes), DISMISSED (id + label).
+        store.save(Alarm(1, 8, 0, label = "Morning", repeatDays = setOf(Calendar.MONDAY)))
+        receive(intentFor(1))
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_SNOOZE
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        // EventLog writes on Dispatchers.IO; poll until the full cycle lands.
+        var events = runBlocking { EventLog.getAll(context) }
+        for (i in 0 until 50) {
+            val types = events.map { it.type }.toSet()
+            if (types.containsAll(setOf(EventType.FIRED, EventType.SNOOZED, EventType.DISMISSED))) break
+            Thread.sleep(20)
+            events = runBlocking { EventLog.getAll(context) }
+        }
+        val fired = events.firstOrNull { it.type == EventType.FIRED }
+        val snoozed = events.firstOrNull { it.type == EventType.SNOOZED }
+        val dismissed = events.firstOrNull { it.type == EventType.DISMISSED }
+        assertEquals(1L, fired?.alarmId)
+        assertEquals("Morning", fired?.label)
+        assertEquals("Morning", snoozed?.label)
+        assertTrue(snoozed?.details?.endsWith("min") == true)
+        assertEquals(1L, dismissed?.alarmId)
+        assertEquals("Morning", dismissed?.label)
+        assertTrue(scheduledAlarms.isEmpty())
+    }
+
     private fun rescheduleAll() {
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_RESCHEDULE_ALL

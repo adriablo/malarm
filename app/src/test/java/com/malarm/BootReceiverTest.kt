@@ -28,8 +28,21 @@ class BootReceiverTest {
         context = RuntimeEnvironment.getApplication()
         store = AlarmStore(context)
         context.getSharedPreferences("malarm", Context.MODE_PRIVATE).edit().clear().commit()
+        kotlinx.coroutines.runBlocking { EventLog.clear(context) }
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        shadowOf(alarmManager).scheduledAlarms.forEach { alarmManager.cancel(it.operation!!) }
+        shadowOf(alarmManager).scheduledAlarms.toList().forEach { alarmManager.cancel(it.operation!!) }
+    }
+
+    private fun awaitEvents(vararg types: EventType): List<AlarmEvent> {
+        // EventLog writes fan out on Dispatchers.IO; wait until every expected
+        // type has landed, not just the first row, to avoid partial batches.
+        var events = kotlinx.coroutines.runBlocking { EventLog.getAll(context) }
+        for (i in 0 until 50) {
+            if (types.all { want -> events.any { it.type == want } }) break
+            Thread.sleep(20)
+            events = kotlinx.coroutines.runBlocking { EventLog.getAll(context) }
+        }
+        return events
     }
 
     private fun sendBoot() {
@@ -130,5 +143,52 @@ class BootReceiverTest {
         assertEquals(1, snoozeAlarms.size)
         sendBoot()
         assertTrue(snoozeAlarms.isEmpty())
+    }
+
+    @Test
+    fun bootLogsCompletedCancelledScheduledSequence() {
+        // Manual 10.2: BOOT_COMPLETED, then CANCELLED("Boot") + SCHEDULED.
+        store.save(Alarm(1, 8, 0, label = "Morning", repeatDays = setOf(Calendar.MONDAY)))
+        sendBoot()
+        val events = awaitEvents(EventType.BOOT_COMPLETED, EventType.CANCELLED, EventType.SCHEDULED)
+        val completed = events.firstOrNull { it.type == EventType.BOOT_COMPLETED }
+        val cancelled = events.firstOrNull {
+            it.type == EventType.CANCELLED && it.details == "Boot"
+        }
+        val scheduled = events.firstOrNull { it.type == EventType.SCHEDULED }
+        org.junit.Assert.assertNotNull("expected BOOT_COMPLETED", completed)
+        org.junit.Assert.assertNotNull("expected CANCELLED(Boot)", cancelled)
+        org.junit.Assert.assertNotNull("expected SCHEDULED", scheduled)
+        assertEquals(1L, cancelled!!.alarmId)
+        assertEquals(1L, scheduled!!.alarmId)
+    }
+
+    @Test
+    fun timezoneChangeLogsSequence() {
+        // Manual 10.3: TIMEZONE_CHANGED, then CANCELLED("Time change") + SCHEDULED.
+        store.save(Alarm(1, 8, 0, label = "Morning", repeatDays = setOf(Calendar.MONDAY)))
+        sendTimeChanged(Intent.ACTION_TIMEZONE_CHANGED)
+        val events = awaitEvents(EventType.TIMEZONE_CHANGED, EventType.CANCELLED, EventType.SCHEDULED)
+        val changed = events.firstOrNull { it.type == EventType.TIMEZONE_CHANGED }
+        val cancelled = events.firstOrNull {
+            it.type == EventType.CANCELLED && it.details == "Time change"
+        }
+        val scheduled = events.firstOrNull { it.type == EventType.SCHEDULED }
+        org.junit.Assert.assertNotNull("expected TIMEZONE_CHANGED", changed)
+        org.junit.Assert.assertNotNull("expected CANCELLED(Time change)", cancelled)
+        org.junit.Assert.assertNotNull("expected SCHEDULED", scheduled)
+    }
+
+    @Test
+    fun bootRearmsPeriodicReschedule() {
+        // Manual 8.3: ACTION_RESCHEDULE_ALL re-armed on boot.
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        sendBoot()
+        val periodic = shadowOf(
+            context.getSystemService(Context.ALARM_SERVICE) as AlarmManager,
+        ).scheduledAlarms.filter {
+            shadowOf(it.operation).savedIntent?.action == AlarmScheduler.ACTION_RESCHEDULE_ALL
+        }
+        assertEquals(1, periodic.size)
     }
 }

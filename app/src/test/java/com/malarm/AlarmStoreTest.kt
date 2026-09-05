@@ -16,6 +16,11 @@ class AlarmStoreTest {
 
     @Before
     fun setUp() {
+        // Shared prefs persist across tests in this class; clear so
+        // initiallyEmpty() and id counters are order-independent.
+        RuntimeEnvironment.getApplication()
+            .getSharedPreferences("malarm", android.content.Context.MODE_PRIVATE)
+            .edit().clear().commit()
         store = AlarmStore(RuntimeEnvironment.getApplication())
     }
 

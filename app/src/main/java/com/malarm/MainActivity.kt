@@ -153,7 +153,6 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        handleDebugIntent(intent)
         warnIfExactAlarmsUnavailable()
 
         requestNotificationPermissionIfNeeded()
@@ -181,6 +180,10 @@ class MainActivity : AppCompatActivity() {
                 scheduler.schedule(it, log = false)
             }
         }
+        // Last: a sub-minute debug alarm uses exact-millis scheduling that the
+        // loop above would overwrite via the minute-precision path (rolling to
+        // tomorrow), so it must be armed after the re-arm loop.
+        handleDebugIntent(intent)
     }
 
     override fun onDestroy() {
@@ -222,7 +225,13 @@ class MainActivity : AppCompatActivity() {
     private fun handleDebugIntent(intent: Intent) {
         if (!BuildConfig.DEBUG) return
         if (!intent.getBooleanExtra("debug_schedule", false)) return
-        val cal = Calendar.getInstance().apply { add(Calendar.MINUTE, 1) }
+        // Optional sub-minute delay for faster manual QA (default 60 s).
+        // Under 60 s intentionally bypasses nextTrigger(): the alarm model has
+        // minute precision, so a sub-minute delay through the production path
+        // would truncate to second 0, read as past, and roll to tomorrow.
+        val delaySecs = intent.getIntExtra("debug_schedule_secs", 60).coerceIn(10, 3600)
+        val fireAt = System.currentTimeMillis() + delaySecs * 1000L
+        val cal = Calendar.getInstance().apply { timeInMillis = fireAt }
         val alarm = Alarm(
             id = store.nextId(),
             hour = cal.get(Calendar.HOUR_OF_DAY),
@@ -231,8 +240,12 @@ class MainActivity : AppCompatActivity() {
             enabled = true,
         )
         store.save(alarm)
-        scheduler.schedule(alarm)
-        Toast.makeText(this, "Debug alarm scheduled in 1 min", Toast.LENGTH_LONG).show()
+        if (delaySecs >= 60) {
+            scheduler.schedule(alarm)
+        } else {
+            scheduler.scheduleAt(alarm, fireAt)
+        }
+        Toast.makeText(this, "Debug alarm scheduled in $delaySecs s", Toast.LENGTH_LONG).show()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
