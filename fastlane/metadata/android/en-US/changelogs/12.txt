@@ -1,0 +1,5 @@
+New in 0.6.2:
+- Fixed snooze being lost when the time or timezone changed while the app was open
+- Fixed date alarms with leftover repeat settings re-arming instead of switching off after firing
+- Duplicate alarm deliveries are now ignored so an alarm never rings twice
+- Past-date alarms are automatically disabled on boot and app start
