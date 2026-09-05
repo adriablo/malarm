@@ -71,13 +71,13 @@ class EventLogActivity : AppCompatActivity() {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, sb.toString())
             }
-            startActivity(Intent.createChooser(intent, "Export log"))
+            startActivity(Intent.createChooser(intent, getString(R.string.export_log_chooser)))
         }
     }
 
     private fun clearLog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.clear)
+            .setTitle(R.string.clear_log_title)
             .setMessage(R.string.clear_log_confirm)
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
