@@ -38,26 +38,26 @@ class MainActivityTest {
             set(java.util.Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-    private fun evenHour(month: Int, day: Int, hour: Int, minute: Int): Pair<Int, Int> {
+    private fun topOfHour(month: Int, day: Int, hour: Int, minute: Int): Pair<Int, Int> {
         val controller = Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
-        return controller.get().nextEvenHour(millis(month, day, hour, minute))
+        return controller.get().nextTopOfHour(millis(month, day, hour, minute))
     }
 
     @Test
-    fun nextEvenHourRoundsUpToTopOfHour() {
-        assertEquals(15 to 0, evenHour(java.util.Calendar.SEPTEMBER, 3, 14, 3))
-        assertEquals(15 to 0, evenHour(java.util.Calendar.SEPTEMBER, 3, 14, 0))
+    fun nextTopOfHourRoundsUpToTopOfHour() {
+        assertEquals(15 to 0, topOfHour(java.util.Calendar.SEPTEMBER, 3, 14, 3))
+        assertEquals(15 to 0, topOfHour(java.util.Calendar.SEPTEMBER, 3, 14, 0))
     }
 
     @Test
-    fun nextEvenHourKeepsExactHourFiveMinutesOut() {
-        assertEquals(14 to 0, evenHour(java.util.Calendar.SEPTEMBER, 3, 13, 55))
+    fun nextTopOfHourKeepsExactHourFiveMinutesOut() {
+        assertEquals(14 to 0, topOfHour(java.util.Calendar.SEPTEMBER, 3, 13, 55))
     }
 
     @Test
-    fun nextEvenHourRollsOverMidnight() {
-        assertEquals(0 to 0, evenHour(java.util.Calendar.SEPTEMBER, 3, 23, 55))
-        assertEquals(1 to 0, evenHour(java.util.Calendar.SEPTEMBER, 3, 23, 58))
+    fun nextTopOfHourRollsOverMidnight() {
+        assertEquals(0 to 0, topOfHour(java.util.Calendar.SEPTEMBER, 3, 23, 55))
+        assertEquals(1 to 0, topOfHour(java.util.Calendar.SEPTEMBER, 3, 23, 58))
     }
 
     @Test
@@ -83,7 +83,7 @@ class MainActivityTest {
     fun timeStepButtonsAdjustTimeBeforeSave() {
         val controller = Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
         val activity = controller.get()
-        val (hour, _) = activity.nextEvenHour(System.currentTimeMillis())
+        val (hour, _) = activity.nextTopOfHour(System.currentTimeMillis())
         val store = AlarmStore(activity)
 
         activity.findViewById<android.view.View>(R.id.fab).performClick()

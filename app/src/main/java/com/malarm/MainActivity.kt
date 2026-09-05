@@ -277,7 +277,7 @@ class MainActivity : AppCompatActivity() {
     private fun showAlarmDialog(alarm: Alarm?) {
         isNewAlarm = alarm == null
         val initial = alarm ?: run {
-            val (hour, minute) = nextEvenHour(System.currentTimeMillis())
+            val (hour, minute) = nextTopOfHour(System.currentTimeMillis())
             Alarm(id = 0, hour = hour, minute = minute)
         }
         editing = initial
@@ -577,7 +577,7 @@ class MainActivity : AppCompatActivity() {
     internal fun timeUntil(triggerMillis: Long): String =
         formatTimeUntil(((triggerMillis - System.currentTimeMillis()) / 60_000L).coerceAtLeast(1))
 
-    internal fun nextEvenHour(baseMillis: Long): Pair<Int, Int> {
+    internal fun nextTopOfHour(baseMillis: Long): Pair<Int, Int> {
         val cal = Calendar.getInstance().apply {
             timeInMillis = baseMillis
             add(Calendar.MINUTE, 5)

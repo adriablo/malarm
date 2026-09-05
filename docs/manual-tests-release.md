@@ -29,7 +29,7 @@ Smoke covers 1.1 (one-shot) and 1.2 (daily). Test the rest here.
 | 1.5 | Add a monthly alarm (e.g. day 16) | Shows "Monthly on day 16"; trigger = next month 16th |
 | 1.6 | Add a date alarm (future date) | Shows the date; trigger = that date at alarm time |
 | 1.7 | Add a custom-days alarm (pick Mon+Wed) | Shows "Mon, Wed" |
-| 1.8 | Open the dialog for a new alarm | Label field first; time defaults to the next even hour (now+5m rounded up) |
+| 1.8 | Open the dialog for a new alarm | Label field first; time defaults to the next top of the hour (now+5m rounded up) |
 | 1.9 | Tap the -15/-10/-5/+5/+10/+15 step buttons | Time shifts by that many minutes per tap |
 
 ## 2. Time edge cases
