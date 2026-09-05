@@ -41,6 +41,24 @@ class AlarmJsonTest {
     }
 
     @Test
+    fun dateWithRepeatNormalizesToOneShotDate() {
+        // Code-review §1.3: a combined payload (hostile import, dirty prefs)
+        // must not become an immortal repeating alarm — date wins.
+        val json = JSONObject()
+            .put("id", 6L)
+            .put("hour", 8)
+            .put("minute", 0)
+            .put("days", org.json.JSONArray().put(Calendar.MONDAY).put(Calendar.WEDNESDAY))
+            .put("monthDay", 12)
+            .put("date", 1786518000000L)
+        val alarm = Alarm.fromJson(json)
+        assertEquals(1786518000000L, alarm.dateMillis)
+        assertTrue(alarm.repeatDays.isEmpty())
+        assertNull(alarm.monthlyDay)
+        assertFalse(alarm.isRepeating)
+    }
+
+    @Test
     fun missingFieldsGetDefaults() {
         val json = JSONObject().put("id", 5L).put("hour", 6).put("minute", 10)
         val alarm = Alarm.fromJson(json)

@@ -53,6 +53,25 @@ class AlarmStoreTest {
     }
 
     @Test
+    fun saveStripsRepeatFromDateAlarm() {
+        // Code-review §1.3: the store is the choke point — a combined
+        // date+repeat payload must not persist as an immortal repeater.
+        store.save(
+            Alarm(
+                1, 8, 0,
+                repeatDays = setOf(java.util.Calendar.MONDAY),
+                monthlyDay = 12,
+                dateMillis = 1786518000000L,
+            ),
+        )
+        val stored = store.get(1)!!
+        assertEquals(1786518000000L, stored.dateMillis)
+        assertTrue(stored.repeatDays.isEmpty())
+        assertNull(stored.monthlyDay)
+        assertTrue(!stored.isRepeating)
+    }
+
+    @Test
     fun deleteRemovesAlarm() {
         store.save(Alarm(1, 8, 0))
         store.delete(1)

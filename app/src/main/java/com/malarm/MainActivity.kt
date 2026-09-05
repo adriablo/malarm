@@ -482,10 +482,15 @@ class MainActivity : AppCompatActivity() {
                 pendingDate = if (newDays.isEmpty()) initial.dateMillis else null
             }
             .setPositiveButton(R.string.save) { _, _ ->
+                val finalDays = pendingDays ?: initial.repeatDays
                 editing = initial.copy(
-                    repeatDays = pendingDays ?: initial.repeatDays,
+                    repeatDays = finalDays,
                     monthlyDay = null,
-                    dateMillis = pendingDate,
+                    // A confirmed day set is a repeating alarm: drop any date
+                    // even when the list was never touched (Save-without-touch
+                    // from a date alarm must not preserve an illegal
+                    // date+repeat combo).
+                    dateMillis = if (finalDays.isEmpty()) pendingDate else null,
                 )
             }
             .setNegativeButton(R.string.cancel, null)
@@ -540,6 +545,10 @@ class MainActivity : AppCompatActivity() {
             label = db.dialogLabel.text?.toString()?.trim().orEmpty(),
             enabled = db.dialogEnabled.isChecked,
         )
+        // Date wins over repeat: never persist a combined payload.
+        if (updated.dateMillis != null) {
+            updated = updated.copy(repeatDays = emptySet(), monthlyDay = null)
+        }
         scheduler.cancel(updated)
         if (updated.enabled) {
             val trigger = scheduler.nextTrigger(updated)

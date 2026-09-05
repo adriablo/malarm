@@ -26,8 +26,15 @@ class AlarmStore(context: Context) {
 
     @MainThread
     fun save(alarm: Alarm) {
+        // Date wins over repeat (code-review §1.3): never persist a combined
+        // payload — it would become an immortal repeating alarm.
+        val clean = if (alarm.dateMillis != null) {
+            alarm.copy(repeatDays = emptySet(), monthlyDay = null)
+        } else {
+            alarm
+        }
         val obj = read() ?: JSONObject()
-        obj.put(alarm.id.toString(), alarm.toJson())
+        obj.put(clean.id.toString(), clean.toJson())
         persist(obj)
     }
 

@@ -8,6 +8,7 @@ import android.os.Looper
 import android.os.SystemClock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -247,6 +248,31 @@ class AlarmReceiverTest {
         assertTrue(snoozed?.details?.endsWith("min") == true)
         assertEquals(1L, dismissed?.alarmId)
         assertEquals("Morning", dismissed?.label)
+        assertTrue(scheduledAlarms.isEmpty())
+    }
+
+    @Test
+    fun dateAlarmFiresOnceThenDisables() {
+        // Code-review §1.3: the receiver treats a date alarm as a one-shot
+        // (disable, no reschedule) even if stale repeat flags are present,
+        // and the stored copy is stripped clean. (The store itself now
+        // normalizes on save/parse, so the flags here are cleaned before
+        // receive — this locks the fire-once behavior; see AlarmJsonTest
+        // and AlarmStoreTest for the normalization layers.)
+        store.save(
+            Alarm(
+                1, 8, 0, label = "Combo",
+                repeatDays = setOf(Calendar.MONDAY),
+                monthlyDay = 12,
+                dateMillis = System.currentTimeMillis() + 24 * 60 * 60 * 1000L,
+            ),
+        )
+        receive(intentFor(1))
+        val stored = store.get(1)!!
+        assertFalse(stored.enabled)
+        assertTrue(stored.repeatDays.isEmpty())
+        assertNull(stored.monthlyDay)
+        assertNotNull(stored.dateMillis)
         assertTrue(scheduledAlarms.isEmpty())
     }
 

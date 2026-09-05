@@ -34,16 +34,22 @@ data class Alarm(
             val days = buildSet {
                 for (i in 0 until daysArr.length()) add(daysArr.getInt(i))
             }
+            val date = if (o.has("date")) o.getLong("date") else null
+            val monthDay = if (o.has("monthDay")) o.getInt("monthDay") else null
+            // Date wins over repeat: a combined payload (hostile import file,
+            // dirty prefs from older builds) normalizes to a one-shot date
+            // alarm instead of an immortal repeating one. Matches nextTrigger
+            // (date branch) and AlarmFormatter (date branch).
             return Alarm(
                 id = o.getLong("id"),
                 hour = o.getInt("hour"),
                 minute = o.getInt("minute"),
                 label = o.optString("label"),
-                repeatDays = days,
+                repeatDays = if (date != null) emptySet() else days,
                 enabled = o.optBoolean("enabled", true),
                 ringtone = o.optString("ringtone"),
-                dateMillis = if (o.has("date")) o.getLong("date") else null,
-                monthlyDay = if (o.has("monthDay")) o.getInt("monthDay") else null,
+                dateMillis = date,
+                monthlyDay = if (date != null) null else monthDay,
             )
         }
     }

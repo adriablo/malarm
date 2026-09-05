@@ -89,10 +89,14 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val scheduler = AlarmScheduler(context)
         if (!isSnooze) {
-            if (alarm.isRepeating) {
+            // Date wins over repeat (matches nextTrigger/formatter/fromJson):
+            // a date alarm is a one-shot even if stale repeat flags slipped
+            // through in memory. The stored copy is stripped so the illegal
+            // combo cannot resurface.
+            if (alarm.dateMillis == null && alarm.isRepeating) {
                 scheduler.schedule(alarm)
             } else {
-                store.save(alarm.copy(enabled = false))
+                store.save(alarm.copy(enabled = false, repeatDays = emptySet(), monthlyDay = null))
             }
         }
 
