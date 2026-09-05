@@ -86,4 +86,28 @@ class AlarmFormatterTest {
         val expected = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(millis))
         assertEquals(expected, AlarmFormatter.repeat(context, Alarm(1, 8, 0, dateMillis = millis)))
     }
+
+    @Test
+    fun dateMatchesMediumInstance() {
+        val millis = 1786518000000L
+        assertEquals(
+            DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(millis)),
+            AlarmFormatter.date(millis),
+        )
+    }
+
+    @Test
+    fun timestampUsesFixedPattern() {
+        val original = Locale.getDefault()
+        Locale.setDefault(Locale.US)
+        try {
+            val millis = Calendar.getInstance(Locale.US).apply {
+                set(2026, Calendar.SEPTEMBER, 3, 19, 20, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            assertEquals("2026-09-03 19:20:00", AlarmFormatter.timestamp(millis))
+        } finally {
+            Locale.setDefault(original)
+        }
+    }
 }

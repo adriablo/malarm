@@ -29,7 +29,7 @@ class EventLogAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(event: AlarmEvent) {
-            binding.tvTimestamp.text = EventLog.formatTimestamp(event.timestamp)
+            binding.tvTimestamp.text = AlarmFormatter.timestamp(event.timestamp)
             val labelPart = event.label?.takeIf { it.isNotBlank() }?.let { "$it " } ?: ""
             val idPart = event.alarmId?.let { "($it)" } ?: ""
             binding.tvType.text = "${event.type.name.replace("_", " ")} $labelPart$idPart".trim()

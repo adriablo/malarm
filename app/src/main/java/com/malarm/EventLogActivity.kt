@@ -65,7 +65,7 @@ class EventLogActivity : AppCompatActivity() {
             for (event in events) {
                 val labelPart = event.label?.takeIf { it.isNotBlank() }?.let { "$it " } ?: ""
                 val idPart = event.alarmId?.let { "($it)" } ?: ""
-                sb.append("${EventLog.formatTimestamp(event.timestamp)} | ${event.type.name} $labelPart$idPart | ${event.details ?: ""}\n".trimEnd() + "\n")
+                sb.append("${AlarmFormatter.timestamp(event.timestamp)} | ${event.type.name} $labelPart$idPart | ${event.details ?: ""}\n".trimEnd() + "\n")
             }
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"

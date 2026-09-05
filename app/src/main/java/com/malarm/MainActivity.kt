@@ -604,9 +604,8 @@ class MainActivity : AppCompatActivity() {
         getString(
             R.string.date_format,
             getString(R.string.date),
-            alarm.dateMillis?.let {
-                java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(it)
-            } ?: getString(R.string.date_none),
+            alarm.dateMillis?.let { AlarmFormatter.date(it) }
+                ?: getString(R.string.date_none),
         )
 
     private fun ringtoneLabel(): String {

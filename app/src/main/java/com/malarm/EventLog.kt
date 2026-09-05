@@ -5,9 +5,6 @@ import androidx.room.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 enum class EventType {
     SCHEDULED, CANCELLED, FIRED, SNOOZED, DISMISSED,
@@ -74,8 +71,4 @@ object EventLog {
 
     suspend fun getAll(context: Context) = getDb(context).eventDao().getAllEvents()
     suspend fun clear(context: Context) = getDb(context).eventDao().deleteAll()
-
-    fun formatTimestamp(ts: Long): String {
-        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(ts))
-    }
 }

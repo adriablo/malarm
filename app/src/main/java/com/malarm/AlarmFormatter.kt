@@ -1,11 +1,22 @@
 package com.malarm
 
 import android.content.Context
+import java.text.DateFormat
 import java.text.DateFormatSymbols
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 object AlarmFormatter {
+
+    /** Medium-style date, e.g. "Aug 12, 2026". Single home for date rendering. */
+    fun date(millis: Long): String =
+        DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(millis))
+
+    /** Fixed-pattern timestamp for the event log and its export. */
+    fun timestamp(millis: Long): String =
+        SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(millis))
 
     val DAY_NAMES = intArrayOf(
         Calendar.MONDAY,
@@ -35,8 +46,7 @@ object AlarmFormatter {
 
     fun repeat(context: Context, alarm: Alarm): String {
         if (alarm.dateMillis != null) {
-            return java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM)
-                .format(Date(alarm.dateMillis))
+            return date(alarm.dateMillis)
         }
         alarm.monthlyDay?.let { return context.getString(R.string.repeat_monthly_on_day, it) }
         if (!alarm.isRepeating) return context.getString(R.string.once)
