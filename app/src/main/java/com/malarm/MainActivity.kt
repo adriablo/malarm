@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                     scheduler.cancel(updated)
                     EventLog.log(this@MainActivity, EventType.DISABLED, alarm.id, alarm.label)
                 }
-                adapter.submit(store.all())
+                adapter.submitList(store.all())
             }
 
             override fun onClick(alarm: Alarm) = showAlarmDialog(alarm)
@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                 scheduler.cancel(alarm)
                 store.delete(alarm.id)
                 EventLog.log(this@MainActivity, EventType.DELETED, alarm.id, alarm.label)
-                adapter.submit(store.all())
+                adapter.submitList(store.all())
             }
         })
 
@@ -197,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermissionGate()
-        adapter.submit(store.all())
+        adapter.submitList(store.all())
     }
 
     private fun updatePermissionGate() {
@@ -433,7 +433,7 @@ class MainActivity : AppCompatActivity() {
             scheduler.cancel(current)
             store.delete(current.id)
             EventLog.log(this, EventType.DELETED, current.id, current.label)
-            adapter.submit(store.all())
+            adapter.submitList(store.all())
             dialog?.dismiss()
         }
 
@@ -571,7 +571,7 @@ class MainActivity : AppCompatActivity() {
             EventLog.log(this, EventType.DISABLED, updated.id, updated.label)
             Toast.makeText(this, R.string.alarm_saved, Toast.LENGTH_SHORT).show()
         }
-        adapter.submit(store.all())
+        adapter.submitList(store.all())
     }
 
     internal fun timeUntil(triggerMillis: Long): String =

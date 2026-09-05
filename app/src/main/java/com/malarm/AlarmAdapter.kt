@@ -17,9 +17,6 @@ class AlarmAdapter(
         fun onDelete(alarm: Alarm)
     }
 
-    /** Kept so callers don't churn; ListAdapter diffs and animates under the hood. */
-    fun submit(list: List<Alarm>) = submitList(list)
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val binding = ItemAlarmBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return Holder(binding)
