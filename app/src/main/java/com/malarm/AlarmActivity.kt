@@ -75,22 +75,24 @@ class AlarmActivity : AppCompatActivity() {
         ContextCompat.startForegroundService(this, RingtoneService.intent(this, alarm!!))
     }
 
+    // In-process direct calls, not broadcasts: this activity is already in the
+    // foreground, so round-tripping through the receiver queue would only add
+    // latency (ringtone lingers) and a failure mode. Mirrors
+    // AlarmReceiver.handleSnooze/handleDismiss, which stay for the
+    // notification-action path (PendingIntents must go through the receiver).
     private fun snooze() {
         val alarm = alarm ?: return
-        sendBroadcast(
-            Intent(this, AlarmReceiver::class.java)
-                .setAction(AlarmScheduler.ACTION_SNOOZE)
-                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
-        )
+        val minutes = AlarmStore(this).snoozeMinutes()
+        AlarmScheduler(this).scheduleSnooze(alarm, minutes * 60_000L)
+        EventLog.log(this, EventType.SNOOZED, alarm.id, alarm.label, "$minutes min")
+        AlarmNotifier.stopRinging(this)
     }
 
     private fun dismiss() {
         val alarm = alarm ?: return
-        sendBroadcast(
-            Intent(this, AlarmReceiver::class.java)
-                .setAction(AlarmScheduler.ACTION_DISMISS)
-                .putExtra(AlarmScheduler.EXTRA_ALARM_ID, alarm.id),
-        )
+        AlarmScheduler(this).cancel(alarm, "Dismiss")
+        EventLog.log(this, EventType.DISMISSED, alarm.id, alarm.label)
+        AlarmNotifier.stopRinging(this)
     }
 
     companion object {

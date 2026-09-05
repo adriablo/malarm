@@ -1,10 +1,7 @@
 package com.malarm
 
 import android.app.AlarmManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Looper
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -36,36 +33,48 @@ class AlarmActivityTest {
         shadowOf(alarmManager).scheduledAlarms.forEach { alarmManager.cancel(it.operation!!) }
     }
 
+    private val alarmManager
+        get() = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    private fun scheduledSnoozes() =
+        shadowOf(alarmManager).scheduledAlarms.filter {
+            val saved = shadowOf(it.operation).savedIntent
+            saved?.action == AlarmScheduler.ACTION_ALARM &&
+                saved.getBooleanExtra(AlarmScheduler.EXTRA_IS_SNOOZE, false)
+        }
+
+    private fun awaitEvent(type: EventType): AlarmEvent {
+        repeat(50) {
+            val events = runBlocking { EventLog.getAll(context) }
+            events.firstOrNull { it.type == type }?.let { return it }
+            Thread.sleep(20)
+        }
+        throw AssertionError("event $type never appeared in the log")
+    }
+
+    private fun assertDefaultSnoozeArmed() {
+        // Default snooze is 5 min (prefs cleared in setUp).
+        val before = android.os.SystemClock.elapsedRealtime()
+        val snooze = scheduledSnoozes().single()
+        val after = android.os.SystemClock.elapsedRealtime()
+        assertEquals(AlarmManager.ELAPSED_REALTIME_WAKEUP, snooze.type)
+        assertTrue(snooze.triggerAtMs in before + 5 * 60_000L..after + 5 * 60_000L)
+    }
+
     @Test
     fun backPressSnoozesAndFinishes() {
-        val alarm = Alarm(1, 8, 0)
-        store.save(alarm)
-        val received = mutableListOf<Intent>()
-        val probe = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                received.add(intent)
-            }
-        }
-        androidx.core.content.ContextCompat.registerReceiver(
-            context,
-            probe,
-            IntentFilter(AlarmScheduler.ACTION_SNOOZE),
-            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-        try {
-            val controller = Robolectric.buildActivity(
-                AlarmActivity::class.java,
-                AlarmActivity.intent(context, alarm.id),
-            ).setup()
-            controller.get().onBackPressedDispatcher.onBackPressed()
-            shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(controller.get().isFinishing)
-            val snooze = received.singleOrNull { it.action == AlarmScheduler.ACTION_SNOOZE }
-            assertNotNull("expected a snooze broadcast on back press", snooze)
-            assertEquals(1L, snooze!!.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1))
-        } finally {
-            context.unregisterReceiver(probe)
-        }
+        store.save(Alarm(1, 8, 0, label = "Morning"))
+        val controller = Robolectric.buildActivity(
+            AlarmActivity::class.java,
+            AlarmActivity.intent(context, 1L),
+        ).setup()
+        controller.get().onBackPressedDispatcher.onBackPressed()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(controller.get().isFinishing)
+        assertDefaultSnoozeArmed()
+        val event = awaitEvent(EventType.SNOOZED)
+        assertEquals(1L, event.alarmId)
+        assertEquals("Morning", event.label)
     }
 
     @Test
@@ -77,61 +86,40 @@ class AlarmActivityTest {
         assertTrue(controller.get().isFinishing)
     }
 
-    private fun probeFor(action: String, block: (MutableList<Intent>) -> Unit): List<Intent> {
-        val received = mutableListOf<Intent>()
-        val probe = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                received.add(intent)
-            }
-        }
-        androidx.core.content.ContextCompat.registerReceiver(
-            context,
-            probe,
-            IntentFilter(action),
-            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-        try {
-            block(received)
-        } finally {
-            context.unregisterReceiver(probe)
-        }
-        return received
+    @Test
+    fun snoozeButtonArmsSnoozeAndFinishes() {
+        // Manual 5.2 logic: full-screen Snooze arms the default snooze
+        // directly (no broadcast round-trip) and logs SNOOZED.
+        store.save(Alarm(1, 8, 0, label = "Morning"))
+        val controller = Robolectric.buildActivity(
+            AlarmActivity::class.java,
+            AlarmActivity.intent(context, 1L),
+        ).setup()
+        controller.get().findViewById<android.widget.Button>(R.id.snooze).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(controller.get().isFinishing)
+        assertDefaultSnoozeArmed()
+        val event = awaitEvent(EventType.SNOOZED)
+        assertEquals("5 min", event.details)
     }
 
     @Test
-    fun snoozeButtonSendsBroadcastAndFinishes() {
-        // Manual 5.2 logic: full-screen Snooze broadcasts ACTION_SNOOZE.
-        store.save(Alarm(1, 8, 0))
-        probeFor(AlarmScheduler.ACTION_SNOOZE) { received ->
-            val controller = Robolectric.buildActivity(
-                AlarmActivity::class.java,
-                AlarmActivity.intent(context, 1L),
-            ).setup()
-            controller.get().findViewById<android.widget.Button>(R.id.snooze).performClick()
-            shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(controller.get().isFinishing)
-            val snooze = received.singleOrNull { it.action == AlarmScheduler.ACTION_SNOOZE }
-            assertNotNull("expected a snooze broadcast on Snooze press", snooze)
-            assertEquals(1L, snooze!!.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1))
-        }
-    }
-
-    @Test
-    fun dismissButtonSendsBroadcastAndFinishes() {
-        // Manual 5.4 logic: full-screen Dismiss broadcasts ACTION_DISMISS.
-        store.save(Alarm(1, 8, 0))
-        probeFor(AlarmScheduler.ACTION_DISMISS) { received ->
-            val controller = Robolectric.buildActivity(
-                AlarmActivity::class.java,
-                AlarmActivity.intent(context, 1L),
-            ).setup()
-            controller.get().findViewById<android.widget.Button>(R.id.dismiss).performClick()
-            shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(controller.get().isFinishing)
-            val dismiss = received.singleOrNull { it.action == AlarmScheduler.ACTION_DISMISS }
-            assertNotNull("expected a dismiss broadcast on Dismiss press", dismiss)
-            assertEquals(1L, dismiss!!.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1))
-        }
+    fun dismissButtonCancelsAlarmAndFinishes() {
+        // Manual 5.4 logic: full-screen Dismiss cancels directly and logs
+        // DISMISSED with the alarm id + label.
+        store.save(Alarm(1, 8, 0, label = "Morning"))
+        AlarmScheduler(context).schedule(store.get(1)!!)
+        val controller = Robolectric.buildActivity(
+            AlarmActivity::class.java,
+            AlarmActivity.intent(context, 1L),
+        ).setup()
+        controller.get().findViewById<android.widget.Button>(R.id.dismiss).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(controller.get().isFinishing)
+        assertTrue(shadowOf(alarmManager).scheduledAlarms.isEmpty())
+        val event = awaitEvent(EventType.DISMISSED)
+        assertEquals(1L, event.alarmId)
+        assertEquals("Morning", event.label)
     }
 
     @Test
