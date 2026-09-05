@@ -3,7 +3,7 @@
 A minimal native-Kotlin Android alarm clock app (`com.malarm`).
 
 - Add/edit/delete alarms with repeat presets (daily, weekdays, weekends, monthly, custom days)
-- One-shot date alarms and snooze — pick a preset (5–30 min, 1–8 h) or a custom duration
+- One-shot date alarms and snooze — presets 5 min–8 h, plus a configurable default snooze
 - Exact-alarm scheduling with ringtone of your choice, silent option, and vibration
 - Full-screen alarm over the lock screen (Android 14+ permission aware)
 - Re-schedules to the correct local time when the time or timezone changes

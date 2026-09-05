@@ -24,16 +24,28 @@ class AlarmSchedulerAndroidTest {
 
     private lateinit var context: Context
     private lateinit var scheduler: AlarmScheduler
+    private var priorCanScheduleExactAlarms: Boolean = false
 
     @Before
     fun setUp() {
         context = RuntimeEnvironment.getApplication()
         scheduler = AlarmScheduler(context)
+        // Read through the shadowed instance method (no public static getter
+        // exists) so tearDown can restore the prior global value. The method
+        // only exists on S+; pre-S always uses the exact path anyway.
+        priorCanScheduleExactAlarms =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
+            } else {
+                false
+            }
     }
 
     @After
     fun tearDown() {
-        ShadowAlarmManager.setCanScheduleExactAlarms(false)
+        // Restore instead of forcing false: this is global shadow state that
+        // otherwise leaks into other test classes via sandbox reuse.
+        ShadowAlarmManager.setCanScheduleExactAlarms(priorCanScheduleExactAlarms)
     }
 
     private val alarmManager get() =

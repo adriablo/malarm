@@ -64,6 +64,9 @@ misleading API.
 - A one-shot with a time already past today **rolls to tomorrow**.
 - A one-shot with a past date is **auto-disabled** with a
   "will never ring" message rather than left as a dead enabled alarm.
+  Enforced on the save dialog, on boot, and on app start — but **not** on
+  import, which can still leave an enabled never-ringing alarm (open
+  code-review §1.5).
 
 ## Event log
 

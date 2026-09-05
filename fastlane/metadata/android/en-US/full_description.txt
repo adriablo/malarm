@@ -3,8 +3,8 @@ Malarm is a flexible, no-frills alarm scheduler for Android.
 Features:
 
 * One-time and date-specific alarms (e.g. "Rent due on the 15th")
-* Repeat schedules: daily, weekdays, weekends, weekly, or monthly
-* Snooze presets from 5 minutes to 8 hours, or pick a custom duration
+* Repeat schedules: daily, weekdays, weekends, weekly (custom days), or monthly
+* Snooze presets from 5 minutes to 8 hours, plus a configurable default snooze
 * Full-screen alarm over the lock screen, with the sound of your choice or silent
 * Alarms re-schedule to the correct local time when your time or timezone changes
 * Export and import all alarms as a backup file

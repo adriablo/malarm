@@ -31,7 +31,7 @@ class BootReceiver : BroadcastReceiver() {
                 scheduler.cancel(alarm, reason)
             } else {
                 // Clock jump: re-anchor wall-clock mains only; an active snooze is
-                // elapsed-based and survives untouched (§6.8).
+                // elapsed-based and survives untouched (see Snooze in design-notes).
                 scheduler.cancelMain(alarm, reason)
             }
             if (scheduler.isExpiredDateAlarm(alarm)) {
