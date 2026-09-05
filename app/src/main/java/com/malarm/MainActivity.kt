@@ -105,8 +105,20 @@ class MainActivity : AppCompatActivity() {
             override fun onToggle(alarm: Alarm, enabled: Boolean) {
                 val updated = alarm.copy(enabled = enabled)
                 store.save(updated)
-                if (enabled) scheduler.schedule(updated) else scheduler.cancel(updated)
-                EventLog.log(this@MainActivity, if (enabled) EventType.ENABLED else EventType.DISABLED, alarm.id, alarm.label)
+                if (enabled) {
+                    if (scheduler.isExpiredDateAlarm(updated)) {
+                        val disabled = updated.copy(enabled = false)
+                        store.save(disabled)
+                        EventLog.log(this@MainActivity, EventType.DISABLED, alarm.id, alarm.label, "Will never ring")
+                        Toast.makeText(this@MainActivity, R.string.alarm_will_never_ring, Toast.LENGTH_LONG).show()
+                    } else {
+                        scheduler.schedule(updated)
+                        EventLog.log(this@MainActivity, EventType.ENABLED, alarm.id, alarm.label)
+                    }
+                } else {
+                    scheduler.cancel(updated)
+                    EventLog.log(this@MainActivity, EventType.DISABLED, alarm.id, alarm.label)
+                }
                 adapter.submit(store.all())
             }
 
@@ -159,8 +171,16 @@ class MainActivity : AppCompatActivity() {
         // A force-stop cancels all PendingIntents and nothing re-arms them until
         // the next reboot, so re-schedule enabled alarms quietly on every start.
         // schedule() is idempotent (same PendingIntent is overwritten) and skips
-        // expired one-shots via nextTrigger().
-        store.all().filter { it.enabled }.forEach { scheduler.schedule(it, log = false) }
+        // expired one-shots via nextTrigger(); past date alarms are disabled
+        // here too so they never linger as dead enabled alarms.
+        store.all().filter { it.enabled }.forEach {
+            if (scheduler.isExpiredDateAlarm(it)) {
+                store.save(it.copy(enabled = false))
+                EventLog.log(this, EventType.DISABLED, it.id, it.label, "Will never ring")
+            } else {
+                scheduler.schedule(it, log = false)
+            }
+        }
     }
 
     override fun onDestroy() {

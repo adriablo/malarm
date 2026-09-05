@@ -78,6 +78,9 @@ class AlarmReceiver : BroadcastReceiver() {
         if (id < 0) return
 
         val isSnooze = intent.getBooleanExtra(AlarmScheduler.EXTRA_IS_SNOOZE, false)
+        // AlarmManager can redeliver the same broadcast; ignore
+        // repeats inside the delivery window so an alarm never rings twice.
+        if (isDuplicateDelivery(id, isSnooze)) return
         val store = AlarmStore(context)
         val alarm = store.get(id) ?: return
         if (!alarm.enabled && !isSnooze) return
@@ -111,5 +114,29 @@ class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
         private const val BRIDGE_LOCK_TIMEOUT_MS = 30_000L
+
+        // Duplicate-delivery window: redelivered
+        // broadcasts for the same (alarm, snooze) pair inside it are dropped.
+        internal const val DUPLICATE_DELIVERY_WINDOW_MS = 30_000L
+        @Volatile private var lastDeliveryKey: String? = null
+        @Volatile private var lastDeliveryTime: Long = 0L
+
+        @Synchronized
+        internal fun isDuplicateDelivery(alarmId: Long, isSnooze: Boolean): Boolean {
+            val key = "$alarmId:$isSnooze"
+            val now = System.currentTimeMillis()
+            if (key == lastDeliveryKey && now - lastDeliveryTime < DUPLICATE_DELIVERY_WINDOW_MS) {
+                return true
+            }
+            lastDeliveryKey = key
+            lastDeliveryTime = now
+            return false
+        }
+
+        /** Test hook so Robolectric tests stay independent. */
+        internal fun resetForTest() {
+            lastDeliveryKey = null
+            lastDeliveryTime = 0L
+        }
     }
 }

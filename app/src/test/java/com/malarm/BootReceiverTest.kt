@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -63,6 +64,24 @@ class BootReceiverTest {
     fun reschedulesEnabledAlarmsOnBoot() {
         store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
         sendBoot()
+        assertEquals(1, scheduledAlarms.size)
+    }
+
+    @Test
+    fun expiredDateAlarmIsDisabledOnBoot() {
+        val yesterday = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+        store.save(Alarm(1, 8, 0, dateMillis = yesterday))
+        sendBoot()
+        assertFalse(store.get(1)!!.enabled)
+        assertTrue(scheduledAlarms.isEmpty())
+    }
+
+    @Test
+    fun futureDateAlarmSurvivesBoot() {
+        val tomorrow = System.currentTimeMillis() + 24 * 60 * 60 * 1000L
+        store.save(Alarm(1, 8, 0, dateMillis = tomorrow))
+        sendBoot()
+        assertTrue(store.get(1)!!.enabled)
         assertEquals(1, scheduledAlarms.size)
     }
 

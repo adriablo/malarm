@@ -79,6 +79,15 @@ class AlarmScheduler(private val context: Context) {
 
     fun nextTrigger(alarm: Alarm): Long? = nextTrigger(alarm, Calendar.getInstance())
 
+    /**
+     * A date one-shot whose trigger is in the past can never fire again.
+     * These are auto-disabled (same as the save dialog's "Will never ring"
+     * path) so callers never leave dead
+     * enabled alarms behind after boot / app start / time changes.
+     */
+    fun isExpiredDateAlarm(alarm: Alarm): Boolean =
+        alarm.enabled && alarm.dateMillis != null && nextTrigger(alarm) == null
+
     companion object {
         const val ACTION_ALARM = "com.malarm.ACTION_ALARM"
         const val ACTION_SNOOZE = "com.malarm.ACTION_SNOOZE"

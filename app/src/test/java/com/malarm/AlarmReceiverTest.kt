@@ -33,6 +33,7 @@ class AlarmReceiverTest {
         context = RuntimeEnvironment.getApplication()
         store = AlarmStore(context)
         // Clear shared state so tests are independent.
+        AlarmReceiver.resetForTest()
         runBlocking { EventLog.clear(context) }
         context.getSharedPreferences("malarm", Context.MODE_PRIVATE).edit().clear().commit()
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -102,6 +103,27 @@ class AlarmReceiverTest {
         store.save(Alarm(1, 8, 0, enabled = false))
         receive(intentFor(1, snooze = true))
         assertTrue(channelExists())
+    }
+
+    @Test
+    fun duplicateDeliveryWithinWindowIsIgnored() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        receive(intentFor(1))
+        receive(intentFor(1))
+        // Let both async FIRED writes land, then assert only one survived.
+        Thread.sleep(500)
+        val fired = runBlocking { EventLog.getAll(context) }.count { it.type == EventType.FIRED }
+        assertEquals(1, fired)
+    }
+
+    @Test
+    fun snoozeVariantIsNotADuplicateOfMain() {
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(Calendar.MONDAY)))
+        receive(intentFor(1))
+        receive(intentFor(1, snooze = true))
+        Thread.sleep(500)
+        val fired = runBlocking { EventLog.getAll(context) }.count { it.type == EventType.FIRED }
+        assertEquals(2, fired)
     }
 
     @Test

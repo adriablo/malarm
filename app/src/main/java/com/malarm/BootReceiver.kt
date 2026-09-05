@@ -34,7 +34,12 @@ class BootReceiver : BroadcastReceiver() {
                 // elapsed-based and survives untouched (§6.8).
                 scheduler.cancelMain(alarm, reason)
             }
-            if (alarm.enabled) scheduler.schedule(alarm)
+            if (scheduler.isExpiredDateAlarm(alarm)) {
+                store.save(alarm.copy(enabled = false))
+                EventLog.log(context, EventType.DISABLED, alarm.id, alarm.label, "Will never ring")
+            } else if (alarm.enabled) {
+                scheduler.schedule(alarm)
+            }
         }
         scheduler.schedulePeriodicReschedule()
         store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
