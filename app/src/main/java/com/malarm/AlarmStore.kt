@@ -114,8 +114,41 @@ class AlarmStore(context: Context) {
         prefs.edit().putString(KEY_ALARMS, obj.toString()).apply()
     }
 
+    /** Last armed wall-clock trigger per alarm id, for the missed-fire
+     * watchdog. Written on every schedule, cleared on cancel; the watchdog
+     * drops entries for missing/disabled alarms itself. */
+    fun setExpectedTrigger(alarmId: Long, triggerMillis: Long) {
+        val obj = readTriggers()
+        obj.put(alarmId.toString(), triggerMillis)
+        prefs.edit().putString(KEY_TRIGGERS, obj.toString()).apply()
+    }
+
+    fun expectedTriggers(): Map<Long, Long> {
+        val obj = readTriggers()
+        val out = mutableMapOf<Long, Long>()
+        val keys = obj.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            val id = key.toLongOrNull() ?: continue
+            out[id] = obj.optLong(key, -1L).takeIf { it >= 0 } ?: continue
+        }
+        return out
+    }
+
+    fun clearExpectedTrigger(alarmId: Long) {
+        val obj = readTriggers()
+        if (obj.remove(alarmId.toString()) != null) {
+            prefs.edit().putString(KEY_TRIGGERS, obj.toString()).apply()
+        }
+    }
+
+    private fun readTriggers(): JSONObject =
+        runCatching { JSONObject(prefs.getString(KEY_TRIGGERS, null) ?: "{}") }
+            .getOrDefault(JSONObject())
+
     companion object {
         private const val KEY_ALARMS = "alarms"
+        private const val KEY_TRIGGERS = "expectedTriggers"
         private const val KEY_NEXT_ID = "nextId"
         private const val KEY_SNOOZE_MINUTES = "snoozeMinutes"
         private const val KEY_TIME_ZONE_ID = "timeZoneId"

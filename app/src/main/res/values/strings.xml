@@ -87,6 +87,5 @@
     <string name="export">Export</string>
     <string name="clear_log_confirm">Clear all event log entries?</string>
     <string name="clear_log_title">Clear event log</string>
-    <string name="export_log_chooser">Export log</string>
     <string name="log_cleared">Log cleared</string>
 </resources>

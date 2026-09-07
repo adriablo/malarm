@@ -3,11 +3,9 @@ package com.malarm
 import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.IntentFilter
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
@@ -28,7 +26,6 @@ import com.malarm.BuildConfig
 import com.malarm.databinding.ActivityMainBinding
 import com.malarm.databinding.DialogAlarmBinding
 import java.util.Calendar
-import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,22 +33,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var store: AlarmStore
     private lateinit var scheduler: AlarmScheduler
     private lateinit var adapter: AlarmAdapter
-
-    private val timeChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            EventLog.log(context, EventType.TIMEZONE_CHANGED)
-            store.all().forEach { alarm ->
-                // Re-anchor wall-clock mains only: an active snooze is
-                // elapsed-based and survives clock jumps untouched,
-                // matching BootReceiver and AlarmReceiver.
-                scheduler.cancelMain(alarm, "Time change")
-                if (alarm.enabled) scheduler.schedule(alarm)
-            }
-            store.setTimeZoneId(TimeZone.getDefault().id)
-            store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
-            scheduler.schedulePeriodicReschedule()
-        }
-    }
 
     private var dialog: androidx.appcompat.app.AlertDialog? = null
     private var dialogBinding: DialogAlarmBinding? = null
@@ -161,13 +142,6 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermissionIfNeeded()
         updatePermissionGate()
 
-        registerReceiver(
-            timeChangeReceiver,
-            IntentFilter().apply {
-                addAction(Intent.ACTION_TIME_CHANGED)
-                addAction(Intent.ACTION_TIMEZONE_CHANGED)
-            },
-        )
         store.setClockCalibration(SystemClock.elapsedRealtime(), System.currentTimeMillis())
         scheduler.schedulePeriodicReschedule()
         // A force-stop cancels all PendingIntents and nothing re-arms them until
@@ -175,23 +149,34 @@ class MainActivity : AppCompatActivity() {
         // schedule() is idempotent (same PendingIntent is overwritten) and skips
         // expired one-shots via nextTrigger(); past date alarms are disabled
         // here too so they never linger as dead enabled alarms.
+        // Snapshot armed expectations before the quiet re-arm overwrites them:
+        // the watchdog turns a past-due expectation with no FIRED into MISSED.
+        val triggerSnapshot = MissedAlarmWatchdog.snapshot(this)
+        MissedAlarmWatchdog.checkAsync(this, triggerSnapshot)
+        val pastDue = triggerSnapshot.values.count { it <= System.currentTimeMillis() }
+        var rearmed = 0
         store.all().filter { it.enabled }.forEach {
             if (scheduler.isExpiredDateAlarm(it)) {
                 store.save(it.copy(enabled = false))
                 EventLog.log(this, EventType.DISABLED, it.id, it.label, "Will never ring")
             } else {
                 scheduler.schedule(it, log = false)
+                rearmed++
             }
+        }
+        // Marker for missed-alarm diagnosis: the quiet re-arm above leaves no
+        // per-alarm trace by design, so record that it ran. A missed alarm with
+        // an APP_START after its time means the app was opened late and the
+        // instance rolled forward; a miss with no APP_START points at the OS.
+        // Guarded by savedInstanceState so rotations don't spam the log.
+        if (savedInstanceState == null && pastDue > 0) {
+            val noun = if (rearmed == 1) "alarm" else "alarms"
+            EventLog.log(this, EventType.APP_START, details = "Re-armed $rearmed $noun")
         }
         // Last: a sub-minute debug alarm uses exact-millis scheduling that the
         // loop above would overwrite via the minute-precision path (rolling to
         // tomorrow), so it must be armed after the re-arm loop.
         handleDebugIntent(intent)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        runCatching { unregisterReceiver(timeChangeReceiver) }
     }
 
     override fun onResume() {

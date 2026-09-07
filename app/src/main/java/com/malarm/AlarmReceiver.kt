@@ -31,6 +31,9 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleRescheduleAll(context: Context) {
+        // Watchdog runs on every periodic tick, including the "No change"
+        // path below — a missed fire must surface even when the clock is fine.
+        MissedAlarmWatchdog.checkAsync(context, MissedAlarmWatchdog.snapshot(context))
         val store = AlarmStore(context)
         val current = TimeZone.getDefault().id
         val timezoneChanged = current != store.timeZoneId()

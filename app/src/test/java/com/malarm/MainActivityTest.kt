@@ -122,6 +122,28 @@ class MainActivityTest {
     }
 
     @Test
+    fun appStartLogsRearmMarker() {
+        val app = org.robolectric.RuntimeEnvironment.getApplication()
+        app.getSharedPreferences("malarm", android.content.Context.MODE_PRIVATE).edit().clear().commit()
+        kotlinx.coroutines.runBlocking { EventLog.clear(app) }
+        val store = AlarmStore(app)
+        store.save(Alarm(1, 8, 0, repeatDays = setOf(java.util.Calendar.MONDAY)))
+        store.setExpectedTrigger(1, System.currentTimeMillis() - 10 * 60_000L)
+
+        Robolectric.buildActivity(MainActivity::class.java, Intent()).setup()
+
+        var events = kotlinx.coroutines.runBlocking { EventLog.getAll(app) }
+        for (i in 0 until 50) {
+            if (events.any { it.type == EventType.APP_START }) break
+            Thread.sleep(20)
+            events = kotlinx.coroutines.runBlocking { EventLog.getAll(app) }
+        }
+        val marker = events.firstOrNull { it.type == EventType.APP_START }
+        org.junit.Assert.assertNotNull("expected APP_START marker", marker)
+        assertEquals("Re-armed 1 alarm", marker!!.details)
+    }
+
+    @Test
     fun appStartDisablesExpiredDateAlarm() {
         // Manual 2.2 (past date auto-disabled) via the MainActivity start path:
         // same isExpiredDateAlarm rule as the save dialog and BootReceiver.

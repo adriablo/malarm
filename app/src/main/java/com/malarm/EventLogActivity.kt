@@ -1,8 +1,8 @@
 package com.malarm
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -57,22 +57,24 @@ class EventLogActivity : AppCompatActivity() {
         }
     }
 
-    private fun exportLog() {
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv"),
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
         lifecycleScope.launch {
-            val events = EventLog.getAll(this@EventLogActivity)
-            val sb = StringBuilder()
-            sb.append("Malarm Event Log\n\n")
-            for (event in events) {
-                val labelPart = event.label?.takeIf { it.isNotBlank() }?.let { "$it " } ?: ""
-                val idPart = event.alarmId?.let { "($it)" } ?: ""
-                sb.append("${AlarmFormatter.timestamp(event.timestamp)} | ${event.type.name} $labelPart$idPart | ${event.details ?: ""}\n".trimEnd() + "\n")
+            val csv = EventLogExport.toCsv(EventLog.getAll(this@EventLogActivity))
+            runCatching {
+                contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(csv) }
+            }.onFailure {
+                Toast.makeText(this@EventLogActivity, R.string.export_error, Toast.LENGTH_SHORT).show()
+                return@launch
             }
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, sb.toString())
-            }
-            startActivity(Intent.createChooser(intent, getString(R.string.export_log_chooser)))
+            Toast.makeText(this@EventLogActivity, R.string.export_done, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun exportLog() {
+        exportLauncher.launch(EventLogExport.fileName())
     }
 
     private fun clearLog() {

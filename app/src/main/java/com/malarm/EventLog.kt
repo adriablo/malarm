@@ -10,6 +10,7 @@ enum class EventType {
     SCHEDULED, CANCELLED, FIRED, SNOOZED, DISMISSED,
     ENABLED, DISABLED, DELETED, IMPORTED,
     BOOT_COMPLETED, TIMEZONE_CHANGED, PERIODIC_CHECK,
+    APP_START, MISSED,
     UNKNOWN
 }
 
@@ -38,7 +39,10 @@ interface EventDao {
     @Query("SELECT * FROM event_log ORDER BY timestamp DESC")
     suspend fun getAllEvents(): List<AlarmEvent>
 
-    @Query("DELETE FROM event_log WHERE id NOT IN (SELECT id FROM event_log ORDER BY timestamp DESC LIMIT 500)")
+    @Query("SELECT COUNT(*) FROM event_log WHERE type = 'FIRED' AND alarmId = :alarmId AND timestamp >= :from AND timestamp <= :until")
+    suspend fun countFiredBetween(alarmId: Long, from: Long, until: Long): Int
+
+    @Query("DELETE FROM event_log WHERE id NOT IN (SELECT id FROM event_log ORDER BY timestamp DESC LIMIT 10000)")
     suspend fun trimOldEvents()
 
     @Query("DELETE FROM event_log")

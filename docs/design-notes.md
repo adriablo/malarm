@@ -56,7 +56,7 @@ misleading API.
 - Manual clock changes (same timezone) are detected by comparing the wall clock
   against `SystemClock.elapsedRealtime()` (the calibration pair stored in
   `AlarmStore`). `ElapsedRealtime` ignores clock changes.
-- The periodic check runs on `ELAPSED_REALTIME` every 4h. It re-anchors only
+- The periodic check runs on `ELAPSED_REALTIME` every 2h. It re-anchors only
   when the timezone id changed **or** the wall clock jumped beyond tolerance.
 
 ## One-shot semantics
@@ -74,6 +74,16 @@ misleading API.
   carries the alarm id (the dismiss broadcast includes `EXTRA_ALARM_ID`).
 - `PERIODIC_CHECK` is logged at **fire time** in `handleRescheduleAll`, not at
   schedule time — otherwise it spams the log on every app open / tz change.
+- `APP_START` is logged only when `MainActivity` finds a past-due armed trigger
+  and re-arms it, so a missed alarm followed by `APP_START` means the app was
+  opened late (instance rolled forward). Normal app opens stay out of the log;
+  the per-alarm re-arm itself stays quiet (`log = false`).
+- `MISSED` is logged by `MissedAlarmWatchdog` (runs on app start and on every
+  periodic tick, including a tick with no clock change): an enabled alarm whose
+  recorded trigger passed 5+ min ago with no `FIRED` in that trigger's delivery
+  window. Each `schedule` records the trigger in `AlarmStore`, each cancel
+  clears it; snooze instances are out of scope. Each trigger is examined once,
+  and routine periodic ticks do not add a `PERIODIC_CHECK` row.
 - `AlarmScheduler.cancel()` takes an optional `reason` (e.g. "Boot",
   "Time change", "Reschedule") so boot/tz reschedule floods are identifiable
   as reschedules, distinct from user cancellations.

@@ -25,8 +25,17 @@ class AlarmScheduler(private val context: Context) {
      * [schedule]. */
     fun scheduleAt(alarm: Alarm, triggerAtMillis: Long, log: Boolean = true) {
         setExact(triggerAtMillis, alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        // Record the armed trigger for the missed-fire watchdog (cleared on
+        // cancel; the watchdog drops stale entries for disabled alarms).
+        AlarmStore(context).setExpectedTrigger(alarm.id, triggerAtMillis)
         if (log) {
-            EventLog.log(context, EventType.SCHEDULED, alarm.id, alarm.label, "Time: ${alarm.hour}:${alarm.minute}")
+            EventLog.log(
+                context,
+                EventType.SCHEDULED,
+                alarm.id,
+                alarm.label,
+                "Time: ${alarm.hour}:${alarm.minute}; Exact: ${canScheduleExact()}",
+            )
         }
     }
 
@@ -40,6 +49,7 @@ class AlarmScheduler(private val context: Context) {
      * TIME_SET / TIMEZONE_CHANGED re-anchoring; boot still cancels both. */
     fun cancelMain(alarm: Alarm, reason: String? = null) {
         alarmManager.cancel(alarmPendingIntent(alarm.id, ROLE_MAIN, isSnooze = false))
+        AlarmStore(context).clearExpectedTrigger(alarm.id)
         EventLog.log(context, EventType.CANCELLED, alarm.id, alarm.label, reason)
     }
 
@@ -56,8 +66,8 @@ class AlarmScheduler(private val context: Context) {
     fun schedulePeriodicReschedule() {
         alarmManager.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME,
-            SystemClock.elapsedRealtime() + 4 * AlarmManager.INTERVAL_HOUR,
-            4 * AlarmManager.INTERVAL_HOUR,
+            SystemClock.elapsedRealtime() + 2 * AlarmManager.INTERVAL_HOUR,
+            2 * AlarmManager.INTERVAL_HOUR,
             rescheduleAllPendingIntent(),
         )
     }
