@@ -104,11 +104,11 @@ class AlarmActivityTest {
     }
 
     @Test
-    fun dismissButtonCancelsAlarmAndFinishes() {
+    fun dismissButtonOnFiredOneShotStaysDisarmedAndFinishes() {
         // Manual 5.4 logic: full-screen Dismiss cancels directly and logs
-        // DISMISSED with the alarm id + label.
-        store.save(Alarm(1, 8, 0, label = "Morning"))
-        AlarmScheduler(context).schedule(store.get(1)!!)
+        // DISMISSED with the alarm id + label. Post-fire one-shot state:
+        // the receiver already disabled it, so nothing is re-armed.
+        store.save(Alarm(1, 8, 0, label = "Morning", enabled = false))
         val controller = Robolectric.buildActivity(
             AlarmActivity::class.java,
             AlarmActivity.intent(context, 1L),
@@ -117,6 +117,27 @@ class AlarmActivityTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertTrue(controller.get().isFinishing)
         assertTrue(shadowOf(alarmManager).scheduledAlarms.isEmpty())
+        val event = awaitEvent(EventType.DISMISSED)
+        assertEquals(1L, event.alarmId)
+        assertEquals("Morning", event.label)
+    }
+
+    @Test
+    fun dismissButtonRearmsRepeatingAlarmAndFinishes() {
+        // Dismiss ends this instance, not the series: tomorrow's main
+        // (armed at fire time) is cancelled by the dismiss and re-armed.
+        store.save(Alarm(1, 8, 0, label = "Morning", repeatDays = setOf(java.util.Calendar.MONDAY)))
+        AlarmScheduler(context).schedule(store.get(1)!!)
+        val controller = Robolectric.buildActivity(
+            AlarmActivity::class.java,
+            AlarmActivity.intent(context, 1L),
+        ).setup()
+        controller.get().findViewById<android.widget.Button>(R.id.dismiss).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(controller.get().isFinishing)
+        val scheduled = shadowOf(alarmManager).scheduledAlarms
+        assertEquals(1, scheduled.size)
+        assertEquals(AlarmManager.RTC_WAKEUP, scheduled.single().type)
         val event = awaitEvent(EventType.DISMISSED)
         assertEquals(1L, event.alarmId)
         assertEquals("Morning", event.label)

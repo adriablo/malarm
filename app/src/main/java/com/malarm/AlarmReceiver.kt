@@ -65,9 +65,14 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun handleDismiss(context: Context, intent: Intent) {
         val id = intent.getLongExtra(AlarmScheduler.EXTRA_ALARM_ID, -1)
         val alarm = if (id >= 0) AlarmStore(context).get(id) else null
-        if (alarm != null) AlarmScheduler(context).cancel(alarm, "Dismiss")
+        val scheduler = AlarmScheduler(context)
+        if (alarm != null) scheduler.cancel(alarm, "Dismiss")
         EventLog.log(context, EventType.DISMISSED, id.takeIf { it >= 0 }, alarm?.label)
         stopRinging(context)
+        // Dismiss ends this instance, not the series: cancel() above also
+        // cleared tomorrow's main (armed at fire time), so re-arm it.
+        // No-op for disabled/deleted one-shots (nextTrigger null).
+        if (alarm != null && alarm.enabled) scheduler.schedule(alarm)
     }
 
     private fun stopRinging(context: Context) {

@@ -129,7 +129,9 @@ class AlarmReceiverTest {
 
     @Test
     fun dismissActionStopsRinging() {
-        store.save(Alarm(1, 8, 0))
+        // Post-fire one-shot state: already disabled by the receiver, main
+        // fired; dismiss must not re-arm anything.
+        store.save(Alarm(1, 8, 0, enabled = false))
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_DISMISS
         })
@@ -182,7 +184,9 @@ class AlarmReceiverTest {
 
     @Test
     fun dismissCancelsPendingSnooze() {
-        store.save(Alarm(1, 8, 0))
+        // Post-fire one-shot with an active snooze: dismiss kills the snooze
+        // and, the alarm being disabled, arms nothing new.
+        store.save(Alarm(1, 8, 0, enabled = false))
         receive(Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmScheduler.ACTION_SNOOZE
             putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
@@ -248,6 +252,35 @@ class AlarmReceiverTest {
         assertTrue(snoozed?.details?.endsWith("min") == true)
         assertEquals(1L, dismissed?.alarmId)
         assertEquals("Morning", dismissed?.label)
+        // Dismiss ends this instance, not the series: tomorrow's main is
+        // re-armed (the snooze itself is gone).
+        assertEquals(1, scheduledAlarms.size)
+        assertEquals(AlarmManager.RTC_WAKEUP, scheduledAlarms.single().type)
+    }
+
+    @Test
+    fun dismissRearmsRepeatingAlarm() {
+        store.save(Alarm(1, 8, 0, label = "Morning", repeatDays = setOf(Calendar.MONDAY)))
+        receive(intentFor(1))
+        assertEquals(1, scheduledAlarms.size)
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
+        // Tomorrow's instance survives the dismiss.
+        assertEquals(1, scheduledAlarms.size)
+        assertEquals(AlarmManager.RTC_WAKEUP, scheduledAlarms.single().type)
+    }
+
+    @Test
+    fun dismissOfOneShotStaysDisarmed() {
+        store.save(Alarm(1, 8, 0, label = "Once"))
+        receive(intentFor(1))
+        assertFalse(store.get(1)!!.enabled)
+        receive(Intent(context, AlarmReceiver::class.java).apply {
+            action = AlarmScheduler.ACTION_DISMISS
+            putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
+        })
         assertTrue(scheduledAlarms.isEmpty())
     }
 
