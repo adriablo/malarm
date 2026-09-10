@@ -120,6 +120,7 @@ class AlarmActivityTest {
         val event = awaitEvent(EventType.DISMISSED)
         assertEquals(1L, event.alarmId)
         assertEquals("Morning", event.label)
+        assertEquals(null, event.details)
     }
 
     @Test
@@ -141,6 +142,7 @@ class AlarmActivityTest {
         val event = awaitEvent(EventType.DISMISSED)
         assertEquals(1L, event.alarmId)
         assertEquals("Morning", event.label)
+        assertEquals("Re-armed", event.details)
     }
 
     @Test

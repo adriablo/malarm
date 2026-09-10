@@ -34,7 +34,7 @@ class AlarmScheduler(private val context: Context) {
                 EventType.SCHEDULED,
                 alarm.id,
                 alarm.label,
-                "Time: ${alarm.hour}:${alarm.minute}; Exact: ${canScheduleExact()}",
+                "Next: ${AlarmFormatter.timestamp(triggerAtMillis)}; Exact: ${canScheduleExact()}",
             )
         }
     }

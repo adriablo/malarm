@@ -91,15 +91,18 @@ class AlarmActivity : AppCompatActivity() {
     private fun dismiss() {
         val alarm = alarm ?: return
         val scheduler = AlarmScheduler(this)
-        scheduler.cancel(alarm, "Dismiss")
-        EventLog.log(this, EventType.DISMISSED, alarm.id, alarm.label)
-        AlarmNotifier.stopRinging(this)
-        // Dismiss ends this instance, not the series: cancel() above also
-        // cleared tomorrow's main (armed at fire time), so re-arm it.
         // Re-read the store: a one-shot is already disabled there by the
         // receiver, and the stale in-memory copy must not re-arm it.
         val current = AlarmStore(this).get(alarm.id)
-        if (current != null && current.enabled) scheduler.schedule(current)
+        // Dismiss ends this instance, not the series: cancel() below also
+        // clears tomorrow's main (armed at fire time). Compute up front
+        // whether there is a next instance so the DISMISSED row records it.
+        val reArms = current != null && current.enabled && scheduler.nextTrigger(current) != null
+        scheduler.cancel(alarm, "Dismiss")
+        EventLog.log(this, EventType.DISMISSED, alarm.id, alarm.label, "Re-armed".takeIf { reArms })
+        AlarmNotifier.stopRinging(this)
+        // No-op for disabled/deleted one-shots (nextTrigger null).
+        if (reArms) scheduler.schedule(current!!)
     }
 
     companion object {

@@ -252,6 +252,7 @@ class AlarmReceiverTest {
         assertTrue(snoozed?.details?.endsWith("min") == true)
         assertEquals(1L, dismissed?.alarmId)
         assertEquals("Morning", dismissed?.label)
+        assertEquals("Re-armed", dismissed?.details)
         // Dismiss ends this instance, not the series: tomorrow's main is
         // re-armed (the snooze itself is gone).
         assertEquals(1, scheduledAlarms.size)
@@ -270,6 +271,14 @@ class AlarmReceiverTest {
         // Tomorrow's instance survives the dismiss.
         assertEquals(1, scheduledAlarms.size)
         assertEquals(AlarmManager.RTC_WAKEUP, scheduledAlarms.single().type)
+        // The log marks the re-arm twice: DISMISSED carries it, and the
+        // SCHEDULED row names the exact next trigger (date included).
+        val dismissed = awaitEvent { it.type == EventType.DISMISSED }
+        assertEquals("Re-armed", dismissed.details)
+        val scheduled = awaitEvent {
+            it.type == EventType.SCHEDULED && (it.details ?: "").startsWith("Next: ")
+        }
+        assertTrue((scheduled.details ?: "").contains("Exact: "))
     }
 
     @Test
@@ -282,6 +291,12 @@ class AlarmReceiverTest {
             putExtra(AlarmScheduler.EXTRA_ALARM_ID, 1L)
         })
         assertTrue(scheduledAlarms.isEmpty())
+        // No next instance, so the DISMISSED row carries no re-arm marker
+        // and no SCHEDULED row follows it.
+        val dismissed = awaitEvent { it.type == EventType.DISMISSED }
+        assertEquals(null, dismissed.details)
+        Thread.sleep(300)
+        assertTrue(runBlocking { EventLog.getAll(context) }.none { it.type == EventType.SCHEDULED })
     }
 
     @Test

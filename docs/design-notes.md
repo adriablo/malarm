@@ -72,6 +72,14 @@ misleading API.
 
 - Events are logged with the alarm id and label where available. DISMISSED
   carries the alarm id (the dismiss broadcast includes `EXTRA_ALARM_ID`).
+  A dismiss that preserves the series adds `Re-armed` details and is
+  followed by a SCHEDULED row; a dismiss with no re-arm (fired one-shot)
+  has neither. A repeating alarm therefore always shows SCHEDULED after
+  DISMISSED — a CANCELLED(Dismiss)+DISMISSED with no following SCHEDULED
+  and no DISABLED/DELETED means tomorrow was disarmed.
+- SCHEDULED details name the exact armed trigger
+  (`Next: yyyy-MM-dd HH:mm:ss`) so a missed occurrence is identifiable by
+  date, not just wall-clock time.
 - `PERIODIC_CHECK` is logged at **fire time** in `handleRescheduleAll`, not at
   schedule time — otherwise it spams the log on every app open / tz change.
 - `APP_START` is logged only when `MainActivity` finds a past-due armed trigger
