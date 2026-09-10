@@ -1,0 +1,5 @@
+New in 0.6.3:
+- Fixed dismissing an alarm disarming its next occurrence (the next day could silently miss)
+- New missed-alarm detection: armed alarms that never fire are recorded in the event log
+- Event log can be exported to CSV; scheduled entries name the exact trigger date and dismissals note re-arms
+- Event log capped at 10,000 entries
